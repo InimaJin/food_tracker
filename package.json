@@ -5,8 +5,5 @@
 	"type": "commonjs",
 	"devDependencies": {
 		"prettier": "^3.8.1"
-	},
-	"dependencies": {
-		"react-router-dom": "^7.13.1"
 	}
 }
