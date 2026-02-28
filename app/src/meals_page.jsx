@@ -38,7 +38,9 @@ export default function MealsPage() {
 		);
 	});
 
-	//TODO: Input field for adding a meal to this date.
+	//TODO: List should not push header down when too long. List must be scrollable instead.
+	//TODO: Input field for adding a meal to this date, see API endpoint /add-meal.
+	//TODO: Button for deleting a meal
 	return (
 		<div className="current-window meals-window">
 			<h1>Meals for {date}</h1>
