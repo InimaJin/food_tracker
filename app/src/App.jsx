@@ -1,3 +1,19 @@
+import { Link, Outlet } from "react-router-dom";
+
+/**
+ * Root component. Renders a child component and the header at the bottom of tha page.
+ */
 export default function App() {
-	return <h1>Hello there!</h1>;
+	return (
+		<>
+			<Outlet />
+			<header>
+				<nav>
+					<Link to={"/"}>
+						<i className="bx bx-calendar-alt" />
+					</Link>
+				</nav>
+			</header>
+		</>
+	);
 }

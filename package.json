@@ -1,9 +1,13 @@
 {
 	"name": "food_tracker",
 	"version": "1.0.0",
-	"description": "An application for tracking food consumption.",
+	"description": "A web application for tracking food consumption.",
 	"type": "commonjs",
 	"devDependencies": {
 		"prettier": "^3.8.1"
-	}
+	},
+	"workspaces": [
+		"api",
+		"app"
+	]
 }
