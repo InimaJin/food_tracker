@@ -7,7 +7,7 @@ export default function App() {
 	return (
 		<>
 			<Outlet />
-			<header>
+			<header className="app-main-header">
 				<nav>
 					<Link to={"/"}>
 						<i className="bx bx-calendar-alt" />

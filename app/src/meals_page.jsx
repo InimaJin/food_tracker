@@ -105,10 +105,26 @@ export default function MealsPage() {
 			});
 	}
 
+	const [totalKcal, totalProtein] = meals.reduce(
+		([kcalAcc, proteinAcc], meal) => {
+			return [
+				kcalAcc + (meal.kcal * meal.amount) / 100,
+				proteinAcc + (meal.protein * meal.amount) / 100,
+			];
+		},
+		[0, 0],
+	);
+
 	//TODO: Button for deleting a meal
 	return (
 		<div className="current-window meals-window">
-			<h1>Meals for {date}</h1>
+			<header>
+				<h1>Meals for {date}</h1>
+				<div>
+					<span>Total kcal: {totalKcal}</span>
+					<span>Total protein: {totalProtein}</span>
+				</div>
+			</header>
 			<ul className="meals-list">{mealsList}</ul>
 			<AddMealDialog
 				dialogRef={dialogRef}
