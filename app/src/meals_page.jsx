@@ -148,9 +148,12 @@ function AddMealDialog({
 	setMatchingFoods,
 }) {
 	const [selectedFoodName, setSelectedFoodName] = useState("");
+	const [amount, setAmount] = useState("");
 	const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
 
-	//TODO: Form should only be submittable when input is valid (food exists etc.).
+	const canSubmit =
+		allFoods.some((food) => food.name === selectedFoodName) && amount > 0;
+
 	return (
 		<dialog className="add-meal-dialog" closedby="any" ref={dialogRef}>
 			<h2>Add meal</h2>
@@ -208,13 +211,23 @@ function AddMealDialog({
 				</div>
 				<div className="add-meal-input-div">
 					<label htmlFor="amount">Amount in grams</label>
-					<input name="amount" type="number" min="0" />
+					<input
+						name="amount"
+						type="number"
+						min="0"
+						value={amount}
+						onChange={(e) => {
+							setAmount(e.target.value);
+						}}
+					/>
 				</div>
 				<div className="add-meal-btn-wrapper">
 					<button type="button" onClick={(e) => dialogRef.current.close()}>
 						Cancel
 					</button>
-					<button type="submit">Ok</button>
+					<button type="submit" disabled={!canSubmit}>
+						Ok
+					</button>
 				</div>
 			</Form>
 		</dialog>

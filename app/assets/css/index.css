@@ -197,6 +197,10 @@ header.app-main-header {
 					border: black;
 					color: white;
 					outline: none;
+					border-radius: 4px;
+				}
+				button:disabled {
+					opacity: 0;
 				}
 			}
 		}
