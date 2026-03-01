@@ -49,6 +49,17 @@ export async function mealsPageAction({ request }) {
 export default function MealsPage() {
 	const { user, date, meals } = useLoaderData();
 
+	//Descending by total calories per meal.
+	meals.sort((m1, m2) => {
+		const m1Kcal = (m1.kcal * m1.amount) / 100;
+		const m2Kcal = (m2.kcal * m2.amount) / 100;
+		if (m1Kcal > m2Kcal) {
+			return -1;
+		} else if (m1Kcal < m2Kcal) {
+			return 1;
+		}
+		return 0;
+	});
 	const mealsList = meals.map((meal) => {
 		const { food_id, name, amount, kcal, protein } = meal;
 
@@ -123,6 +134,7 @@ function AddMealDialog({
 	const [selectedFoodName, setSelectedFoodName] = useState("");
 	const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
 
+	//TODO: Form should only be submittable when input is valid (food exists etc.).
 	return (
 		<dialog className="add-meal-dialog" closedby="any" ref={dialogRef}>
 			<h2>Add meal</h2>
@@ -186,8 +198,6 @@ function AddMealDialog({
 					<button type="button" onClick={(e) => dialogRef.current.close()}>
 						Cancel
 					</button>
-					//TODO: Form should only be submittable when input is valid (food
-					exists etc.).
 					<button type="submit">Ok</button>
 				</div>
 			</Form>

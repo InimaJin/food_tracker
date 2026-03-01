@@ -42,10 +42,10 @@ app.get("/meals", async (req, res) => {
 		return;
 	}
 
-	//TODO: Sort meals
 	const meals = await sql`
 		SELECT food_id, name, amount, kcal, protein
-        FROM foods, meals WHERE owner=${user} AND id=food_id AND date=${date};`;
+        FROM foods, meals WHERE owner=${user} AND id=food_id AND date=${date};
+	`;
 	res.json(meals);
 });
 
