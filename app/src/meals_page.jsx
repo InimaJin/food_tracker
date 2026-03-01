@@ -1,7 +1,12 @@
-import { useLoaderData } from "react-router-dom";
+import { redirect, useLoaderData } from "react-router-dom";
 
-export async function mealsPageLoader({ params }) {
-	const date = params.date;
+export async function mealsPageLoader({ request }) {
+	const searchParams = new URLSearchParams(request.url.split("?")[1]);
+	const date = searchParams.get("d");
+	if (!date) {
+		return redirect("/");
+	}
+
 	//TODO: Login prompt at start of app for initializing user email.
 	const user = localStorage.getItem("user");
 	const meals = await fetch(

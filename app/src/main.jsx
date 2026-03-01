@@ -17,7 +17,7 @@ const router = createBrowserRouter([
 				element: <DateSelectPage />,
 			},
 			{
-				path: "/:date",
+				path: "/meals",
 				loader: mealsPageLoader,
 				element: <MealsPage />,
 			},
