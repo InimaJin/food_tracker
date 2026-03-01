@@ -4,7 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import App from "./App.jsx";
 import DateSelectPage, { dateSelectAction } from "./date_selection_page.jsx";
-import MealsPage, { mealsPageLoader } from "./meals_page.jsx";
+import MealsPage, { mealsPageAction, mealsPageLoader } from "./meals_page.jsx";
 
 const router = createBrowserRouter([
 	{
@@ -19,6 +19,7 @@ const router = createBrowserRouter([
 			{
 				path: "/meals",
 				loader: mealsPageLoader,
+				action: mealsPageAction,
 				element: <MealsPage />,
 			},
 		],

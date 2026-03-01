@@ -12,9 +12,27 @@ const sql = postgres({
 });
 
 /**
+ * Retrieve a list of all foods owned by the given user.
+ * Request query must contain: user=<user email>.
+ * Each food in the array looks like this: { id, name, kcal (per 100g), protein (per 100g) }.
+ */
+app.get("/foods", async (req, res) => {
+	const { user } = req.query;
+	if (!user) {
+		res.status(400).send("No user specified.");
+	}
+
+	const foods = await sql`
+		SELECT id, name, kcal, protein FROM foods WHERE owner=${user}
+	`;
+
+	res.json(foods);
+});
+
+/**
  * Retrieve a list of meals for a given user and date.
  * Request query must contain: user=<user email> and date=<date>.
- * @returns array holding the meal entries, where each entry looks like this: { food_id, name, amount [g], kcal (per 100g), protein [g / 100g]}
+ * Each meal entry in the array looks like this: { food_id, name, amount [g], kcal (per 100g), protein [g / 100g]}.
  */
 app.get("/meals", async (req, res) => {
 	const { user, date } = req.query;
@@ -24,6 +42,7 @@ app.get("/meals", async (req, res) => {
 		return;
 	}
 
+	//TODO: Sort meals
 	const meals = await sql`
 		SELECT food_id, name, amount, kcal, protein
         FROM foods, meals WHERE owner=${user} AND id=food_id AND date=${date};`;
@@ -57,7 +76,7 @@ app.get("/add-meal", async (req, res) => {
 			.catch(
 				(err) =>
 					//If the desired food already has a record for the given day, the above fails due to unique key violation.
-					//So, we simply update the amount in the record.
+					//So, we simply update the amount in the record:
 					sql`
 				UPDATE meals SET amount = amount + ${amount} WHERE food_id = ${foodId} AND date = ${date};
 			`,
