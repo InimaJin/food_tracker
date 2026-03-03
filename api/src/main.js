@@ -13,7 +13,7 @@ const sql = postgres({
 
 /**
  * Retrieve a list of all foods owned by the given user.
- * Request query must contain: user=<user email>.
+ * Request query must contain: user.
  * Each food in the array looks like this: { id, name, kcal (per 100g), protein (per 100g) }.
  */
 app.get("/foods", async (req, res) => {
@@ -31,7 +31,7 @@ app.get("/foods", async (req, res) => {
 
 /**
  * Retrieve a list of meals for a given user and date.
- * Request query must contain: user=<user email> and date=<date>.
+ * Request query must contain: user, date.
  * Each meal entry in the array looks like this: { food_id, name, amount [g], kcal (per 100g), protein [g / 100g]}.
  */
 app.get("/meals", async (req, res) => {
@@ -82,12 +82,21 @@ app.get("/add-meal", async (req, res) => {
 			`,
 			);
 	});
+});
 
-	res.send("Currently no verification.");
+/**
+ * Delete a meal for given day.
+ * Request query must contain: user, date, foodId.
+ */
+app.get("/del-meal", async (req, res) => {
+	const { user, date, foodId } = req.query;
+	await sql`
+		DELETE FROM meals WHERE food_id = ${foodId} AND date = ${date}
+		AND EXISTS (SELECT 1 FROM foods WHERE id = meals.food_id AND owner = ${user});
+	`;
 });
 
 //TODO: Endpoint for creating a new food for given user.
-//TODO: Endpoint for deleting meal.
 
 const port = 9999;
 app.listen(port, () => {
