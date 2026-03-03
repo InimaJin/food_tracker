@@ -98,6 +98,24 @@ header.app-main-header {
 		.meal-top {
 			display: flex;
 			justify-content: space-between;
+
+			div {
+				display: flex;
+				gap: 8px;
+			}
+
+			div button {
+				font-size: inherit;
+				background: transparent;
+				border: none;
+				color: black;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				i {
+					border-bottom: 2px solid black;
+				}
+			}
 		}
 
 		.meal-top h2 {

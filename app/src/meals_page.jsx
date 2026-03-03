@@ -49,31 +49,43 @@ export async function mealsPageAction({ request }) {
 export default function MealsPage() {
 	const { user, date, meals } = useLoaderData();
 
+	meals.forEach((meal) => {
+		meal.totalKcal = parseInt(((meal.kcal * meal.amount) / 100).toFixed(), 10);
+		meal.totalProtein = parseInt(
+			((meal.protein * meal.amount) / 100).toFixed(),
+			10,
+		);
+	});
+
 	//Descending by total calories per meal.
 	meals.sort((m1, m2) => {
-		const m1Kcal = (m1.kcal * m1.amount) / 100;
-		const m2Kcal = (m2.kcal * m2.amount) / 100;
-		if (m1Kcal > m2Kcal) {
+		if (m1.totalKcal > m2.totalKcal) {
 			return -1;
-		} else if (m1Kcal < m2Kcal) {
+		} else if (m1.totalKcal < m2.totalKcal) {
 			return 1;
 		}
 		return 0;
 	});
 	const mealsList = meals.map((meal) => {
-		const { food_id, name, amount, kcal, protein } = meal;
+		const { food_id, name, amount, kcal, protein, totalKcal, totalProtein } =
+			meal;
 
 		return (
 			<li key={food_id}>
 				<div className="meal-top">
 					<h2>{name}</h2>
-					<h2>{amount}g</h2>
+					<div>
+						<h2>{amount}g</h2>
+						<button>
+							<i className="bx bx-pencil" />
+						</button>
+					</div>
 				</div>
 				<ul className="meal-info-list">
 					<li>
 						<div>
 							<span>{kcal}kcal/ 100g</span>
-							<span>{(kcal * (amount / 100)).toFixed()}kcal</span>
+							<span>{totalKcal}kcal</span>
 						</div>
 					</li>
 					<li>
@@ -81,10 +93,7 @@ export default function MealsPage() {
 							<span>
 								{protein !== 0 ? protein + "g protein/ 100g" : "no protein"}
 							</span>
-							<span>
-								{protein !== 0 &&
-									`${(protein * (amount / 100)).toFixed()}g protein`}
-							</span>
+							<span>{protein !== 0 && `${totalProtein}g protein`}</span>
 						</div>
 					</li>
 				</ul>
@@ -107,10 +116,7 @@ export default function MealsPage() {
 
 	const [totalKcal, totalProtein] = meals.reduce(
 		([kcalAcc, proteinAcc], meal) => {
-			return [
-				kcalAcc + (meal.kcal * meal.amount) / 100,
-				proteinAcc + (meal.protein * meal.amount) / 100,
-			];
+			return [kcalAcc + meal.totalKcal, proteinAcc + meal.totalProtein];
 		},
 		[0, 0],
 	);
