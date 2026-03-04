@@ -100,7 +100,7 @@ export default function MealsPage() {
 						<h2>{amount}g</h2>
 						<button
 							onClick={() => {
-								setEditingMealId(food_id);
+								setEditingMealId(editingMealId === food_id ? null : food_id);
 							}}
 						>
 							<i className="bx bx-pencil" />
