@@ -59,6 +59,35 @@ header.app-main-header {
 	}
 }
 
+.underlined-input {
+	border: none;
+	border-bottom: 2px solid black;
+	outline: none;
+}
+
+.form-btn-wrapper {
+	margin-top: 4px;
+	display: flex;
+	justify-content: space-between;
+
+	button {
+		background: none;
+		border: none;
+		outline: none;
+		padding: 4px;
+	}
+	button[type="submit"] {
+		background: black;
+		border: black;
+		color: white;
+		outline: none;
+		border-radius: 4px;
+	}
+	button:disabled {
+		opacity: 0;
+	}
+}
+
 .meals-window {
 	position: relative;
 	display: flex;
@@ -131,6 +160,11 @@ header.app-main-header {
 			display: flex;
 			justify-content: space-between;
 		}
+
+		.edit-meal-form {
+			display: flex;
+			flex-direction: column;
+		}
 	}
 
 	.add-meal-btn {
@@ -169,12 +203,6 @@ header.app-main-header {
 				flex-direction: column;
 			}
 
-			input {
-				border: none;
-				border-bottom: 2px solid black;
-				outline: none;
-			}
-
 			.food-suggestions-list {
 				position: absolute;
 				top: calc(100% + 4px);
@@ -197,28 +225,6 @@ header.app-main-header {
 
 				.suggestions-foodname {
 					font-weight: 500;
-				}
-			}
-
-			.add-meal-btn-wrapper {
-				display: flex;
-				justify-content: space-between;
-
-				button {
-					background: none;
-					border: none;
-					outline: none;
-					padding: 4px;
-				}
-				button[type="submit"] {
-					background: black;
-					border: black;
-					color: white;
-					outline: none;
-					border-radius: 4px;
-				}
-				button:disabled {
-					opacity: 0;
 				}
 			}
 		}

@@ -52,6 +52,7 @@ app.get("/meals", async (req, res) => {
 /**
  * Add a meal to the database. The food must already exist for the specified user.
  * Request query must contain: user, date, foodName, amount.
+ * Response is an object for the added meal: { food_id, name, amount, kcal, protein }.
  */
 app.get("/add-meal", async (req, res) => {
 	const { user, date, foodName, amount } = req.query;
@@ -82,18 +83,36 @@ app.get("/add-meal", async (req, res) => {
 			`,
 			);
 	});
+
+	const addedMeal = await sql`
+		SELECT food_id, name, amount, kcal, protein
+        FROM foods, meals WHERE food_id=${foodId} AND owner=${user} AND id=food_id AND date=${date};
+	`;
+	res.json(addedMeal[0]);
 });
 
 /**
  * Delete a meal for given day.
  * Request query must contain: user, date, foodId.
+ * If no such meal exists, no response is issued. Otherwise, the response is
+ * the food object the meal was associated with: { id, name, kcal, owner, protein }.
  */
 app.get("/del-meal", async (req, res) => {
 	const { user, date, foodId } = req.query;
-	await sql`
+	const delArr = await sql`
 		DELETE FROM meals WHERE food_id = ${foodId} AND date = ${date}
 		AND EXISTS (SELECT 1 FROM foods WHERE id = meals.food_id AND owner = ${user});
 	`;
+
+	//If a meal actually was deleted, respond with the food data.
+	if (delArr.count > 0) {
+		const food = (
+			await sql`
+			SELECT * FROM foods WHERE id=${foodId} AND owner=${user};
+		`
+		)[0];
+		res.json(food);
+	}
 });
 
 //TODO: Endpoint for creating a new food for given user.
