@@ -306,7 +306,6 @@ export default function MealsPage() {
 
 	const [editingMealId, setEditingMealId] = useState(null);
 
-	//TODO: Extract meals list into component
 	const mealsList = meals.map((meal) => {
 		return (
 			<li key={meal.food_id}>
