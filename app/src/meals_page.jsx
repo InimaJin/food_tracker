@@ -27,173 +27,8 @@ export async function mealsPageLoader({ request }) {
 export function mealsPageAction() {}
 
 /**
- * An overview of the meals consumed on a particular date.
+ * A small form for editing a meal within the meals overview.
  */
-export default function MealsPage() {
-	const { user, date, meals: mealsArr } = useLoaderData();
-
-	const [mealsState, setMealsState] = useState(mealsArr);
-
-	let meals = mealsState.map((meal) => {
-		const totalKcal = parseInt(((meal.kcal * meal.amount) / 100).toFixed(), 10);
-		const totalProtein = parseInt(
-			((meal.protein * meal.amount) / 100).toFixed(),
-			10,
-		);
-		return { ...meal, totalKcal, totalProtein };
-	});
-
-	//Descending by total calories per meal.
-	meals = meals.toSorted((m1, m2) => {
-		if (m1.totalKcal > m2.totalKcal) {
-			return -1;
-		} else if (m1.totalKcal < m2.totalKcal) {
-			return 1;
-		}
-		return 0;
-	});
-
-	const [editingMealId, setEditingMealId] = useState(null);
-
-	//TODO: Extract meals list into component
-	const mealsList = meals.map((meal) => {
-		const {
-			food_id: foodId,
-			name,
-			amount,
-			kcal,
-			protein,
-			totalKcal,
-			totalProtein,
-		} = meal;
-
-		return (
-			<li key={foodId}>
-				<div className="meal-top">
-					<h2>{name}</h2>
-					<div>
-						<h2>{amount}g</h2>
-						<button
-							onClick={() => {
-								setEditingMealId(editingMealId === foodId ? null : foodId);
-							}}
-						>
-							<i className="bx bx-pencil" />
-						</button>
-					</div>
-				</div>
-				{editingMealId === foodId ? (
-					<EditMealForm
-						mealId={foodId}
-						cancelEdit={() => setEditingMealId(null)}
-						onMealEdit={(newAmount) => {
-							fetch(
-								`http://localhost:9999/del-meal?user=${user}&date=${date}&foodId=${foodId}`,
-							)
-								.then((res) => res.json())
-								.then(({ name: foodName }) => {
-									return fetch(
-										`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${newAmount}`,
-									);
-								})
-								.then((res) => res.json())
-								.then((newMeal) => {
-									const nextMeals = mealsState.filter(
-										(meal) => meal.food_id !== newMeal.food_id,
-									);
-									setMealsState([...nextMeals, newMeal]);
-									setEditingMealId(null);
-								});
-						}}
-						onMealDelete={() => {
-							fetch(
-								`http://localhost:9999/del-meal?user=${user}&date=${date}&foodId=${foodId}`,
-							).then(() => {
-								const nextMeals = mealsState.filter(
-									(meal) => meal.food_id !== foodId,
-								);
-								setMealsState(nextMeals);
-								setEditingMealId(null);
-							});
-						}}
-					/>
-				) : (
-					<ul className="meal-info-list">
-						<li>
-							<div>
-								<span>{kcal}kcal/ 100g</span>
-								<span>{totalKcal}kcal</span>
-							</div>
-						</li>
-						<li>
-							<div>
-								<span>
-									{protein !== 0 ? protein + "g protein/ 100g" : "no protein"}
-								</span>
-								<span>{protein !== 0 && `${totalProtein}g protein`}</span>
-							</div>
-						</li>
-					</ul>
-				)}
-			</li>
-		);
-	});
-
-	const dialogRef = useRef(null);
-	const [allFoods, setAllFoods] = useState([]);
-	const [matchingFoods, setMatchingFoods] = useState([]);
-	function openAddMealDialog() {
-		dialogRef.current.showModal();
-		fetch(`http://localhost:9999/foods?user=${user}`)
-			.then((res) => res.json())
-			.then((foodsArr) => {
-				setAllFoods(foodsArr);
-				setMatchingFoods(foodsArr);
-			});
-	}
-
-	const [totalKcal, totalProtein] = meals.reduce(
-		([kcalAcc, proteinAcc], meal) => {
-			return [kcalAcc + meal.totalKcal, proteinAcc + meal.totalProtein];
-		},
-		[0, 0],
-	);
-
-	return (
-		<div className="current-window meals-window">
-			<header>
-				<h1>Meals for {date}</h1>
-				<div>
-					<span>Total kcal: {totalKcal}</span>
-					<span>Total protein: {totalProtein}</span>
-				</div>
-			</header>
-			<ul className="meals-list">{mealsList}</ul>
-			<AddMealDialog
-				dialogRef={dialogRef}
-				allFoods={allFoods}
-				{...{ matchingFoods, setMatchingFoods }}
-				onSubmit={({ foodName, amount }) => {
-					fetch(
-						`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${amount}`,
-					)
-						.then((res) => res.json())
-						.then((newMeal) => {
-							const nextMeals = mealsState.filter(
-								(meal) => meal.food_id !== newMeal.food_id,
-							);
-							setMealsState([...nextMeals, newMeal]);
-							dialogRef.current.close();
-						});
-				}}
-			/>
-			<button className="add-meal-btn" onClick={openAddMealDialog}>
-				+
-			</button>
-		</div>
-	);
-}
-
 function EditMealForm({ cancelEdit, onMealEdit, onMealDelete }) {
 	const [newAmount, setNewAmount] = useState("");
 	const [deleteMealPending, setDeleteMealPending] = useState(false);
@@ -214,12 +49,13 @@ function EditMealForm({ cancelEdit, onMealEdit, onMealDelete }) {
 				min="0"
 				value={newAmount}
 				onChange={(e) => setNewAmount(e.target.value)}
+				autoFocus
 			/>
 			<div className="form-btn-wrapper">
 				<button
 					className={`del-meal-btn ${deleteMealPending ? "highlight-rect-btn" : ""}`}
 					type="button"
-					onClick={(e) => {
+					onClick={() => {
 						if (deleteMealPending) {
 							onMealDelete();
 						} else {
@@ -244,6 +80,100 @@ function EditMealForm({ cancelEdit, onMealEdit, onMealDelete }) {
 				</div>
 			</div>
 		</Form>
+	);
+}
+
+/**
+ * A single meal within the meals overview.
+ */
+function Meal({
+	user,
+	date,
+	mealObj,
+	mealsState,
+	setMealsState,
+	editingMealId,
+	setEditingMealId,
+}) {
+	const {
+		food_id: foodId,
+		name,
+		amount,
+		kcal,
+		protein,
+		totalKcal,
+		totalProtein,
+	} = mealObj;
+
+	return (
+		<>
+			<div className="meal-top">
+				<h2>{name}</h2>
+				<div>
+					<h2>{amount}g</h2>
+					<button
+						onClick={() => {
+							setEditingMealId(editingMealId === foodId ? null : foodId);
+						}}
+					>
+						<i className="bx bx-pencil" />
+					</button>
+				</div>
+			</div>
+			{editingMealId === foodId ? (
+				<EditMealForm
+					mealId={foodId}
+					cancelEdit={() => setEditingMealId(null)}
+					onMealEdit={(newAmount) => {
+						fetch(
+							`http://localhost:9999/del-meal?user=${user}&date=${date}&foodId=${foodId}`,
+						)
+							.then((res) => res.json())
+							.then(({ name: foodName }) => {
+								return fetch(
+									`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${newAmount}`,
+								);
+							})
+							.then((res) => res.json())
+							.then((newMeal) => {
+								const nextMeals = mealsState.filter(
+									(meal) => meal.food_id !== newMeal.food_id,
+								);
+								setMealsState([...nextMeals, newMeal]);
+								setEditingMealId(null);
+							});
+					}}
+					onMealDelete={() => {
+						fetch(
+							`http://localhost:9999/del-meal?user=${user}&date=${date}&foodId=${foodId}`,
+						).then(() => {
+							const nextMeals = mealsState.filter(
+								(meal) => meal.food_id !== foodId,
+							);
+							setMealsState(nextMeals);
+							setEditingMealId(null);
+						});
+					}}
+				/>
+			) : (
+				<ul className="meal-info-list">
+					<li>
+						<div>
+							<span>{kcal}kcal/ 100g</span>
+							<span>{totalKcal}kcal</span>
+						</div>
+					</li>
+					<li>
+						<div>
+							<span>
+								{protein !== 0 ? protein + "g protein/ 100g" : "no protein"}
+							</span>
+							<span>{protein !== 0 && `${totalProtein}g protein`}</span>
+						</div>
+					</li>
+				</ul>
+			)}
+		</>
 	);
 }
 
@@ -344,5 +274,106 @@ function AddMealDialog({
 				</div>
 			</Form>
 		</dialog>
+	);
+}
+
+/**
+ * An overview of the meals consumed on a particular date.
+ */
+export default function MealsPage() {
+	const { user, date, meals: mealsArr } = useLoaderData();
+
+	const [mealsState, setMealsState] = useState(mealsArr);
+
+	let meals = mealsState.map((meal) => {
+		const totalKcal = parseInt(((meal.kcal * meal.amount) / 100).toFixed(), 10);
+		const totalProtein = parseInt(
+			((meal.protein * meal.amount) / 100).toFixed(),
+			10,
+		);
+		return { ...meal, totalKcal, totalProtein };
+	});
+
+	//Descending by total calories per meal.
+	meals = meals.toSorted((m1, m2) => {
+		if (m1.totalKcal > m2.totalKcal) {
+			return -1;
+		} else if (m1.totalKcal < m2.totalKcal) {
+			return 1;
+		}
+		return 0;
+	});
+
+	const [editingMealId, setEditingMealId] = useState(null);
+
+	//TODO: Extract meals list into component
+	const mealsList = meals.map((meal) => {
+		return (
+			<li key={meal.food_id}>
+				<Meal
+					user={user}
+					date={date}
+					mealObj={meal}
+					mealsState={mealsState}
+					setMealsState={setMealsState}
+					editingMealId={editingMealId}
+					setEditingMealId={setEditingMealId}
+				/>
+			</li>
+		);
+	});
+
+	const dialogRef = useRef(null);
+	const [allFoods, setAllFoods] = useState([]);
+	const [matchingFoods, setMatchingFoods] = useState([]);
+	function openAddMealDialog() {
+		dialogRef.current.showModal();
+		fetch(`http://localhost:9999/foods?user=${user}`)
+			.then((res) => res.json())
+			.then((foodsArr) => {
+				setAllFoods(foodsArr);
+				setMatchingFoods(foodsArr);
+			});
+	}
+
+	const [totalKcal, totalProtein] = meals.reduce(
+		([kcalAcc, proteinAcc], meal) => {
+			return [kcalAcc + meal.totalKcal, proteinAcc + meal.totalProtein];
+		},
+		[0, 0],
+	);
+
+	return (
+		<div className="current-window meals-window">
+			<header>
+				<h1>Meals for {date}</h1>
+				<div>
+					<span>Total kcal: {totalKcal}</span>
+					<span>Total protein: {totalProtein}</span>
+				</div>
+			</header>
+			<ul className="meals-list">{mealsList}</ul>
+			<AddMealDialog
+				dialogRef={dialogRef}
+				allFoods={allFoods}
+				{...{ matchingFoods, setMatchingFoods }}
+				onSubmit={({ foodName, amount }) => {
+					fetch(
+						`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${amount}`,
+					)
+						.then((res) => res.json())
+						.then((newMeal) => {
+							const nextMeals = mealsState.filter(
+								(meal) => meal.food_id !== newMeal.food_id,
+							);
+							setMealsState([...nextMeals, newMeal]);
+							dialogRef.current.close();
+						});
+				}}
+			/>
+			<button className="add-meal-btn" onClick={openAddMealDialog}>
+				+
+			</button>
+		</div>
 	);
 }
