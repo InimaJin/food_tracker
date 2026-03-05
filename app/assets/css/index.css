@@ -173,10 +173,11 @@ header.app-main-header {
 		.edit-meal-form > .form-btn-wrapper {
 			margin-top: 8px;
 
-			.del-meal-btn {
+			.del-meal-btn:not(.highlight-rect-btn) {
 				display: flex;
 				justify-content: center;
 				align-items: center;
+				color: red;
 			}
 
 			.del-meal-btn .del-confirm {
