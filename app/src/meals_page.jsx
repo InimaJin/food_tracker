@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { redirect, useLoaderData, Form, useActionData } from "react-router-dom";
+import { useState, useRef } from "react";
+import { redirect, useLoaderData, Form } from "react-router-dom";
 
 /**
  * Load all meals for given user and date.
@@ -24,59 +24,27 @@ export async function mealsPageLoader({ request }) {
 	};
 }
 
-/**
- * Add new meal to database for current date.
- */
-export async function mealsPageAction({ request }) {
-	const urlSearchParams = new URLSearchParams(request.url.split("?")[1]);
-	const date = urlSearchParams.get("d");
-	if (!date) {
-		return redirect("/");
-	}
-	const user = localStorage.getItem("user");
-
-	const formData = await request.formData();
-	const intent = formData.get("intent");
-	if (intent.startsWith("edit-meal")) {
-		const foodId = intent.split("-").toReversed()[0];
-		const newAmount = formData.get("new-amount");
-		await fetch(
-			`http://localhost:9999/del-meal?user=${user}&date=${date}&foodId=${foodId}`,
-		)
-			.then((res) => res.json())
-			.then((json) => {
-				const foodName = json.name;
-				return fetch(
-					`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${newAmount}`,
-				);
-			});
-	} else if (intent === "add-meal") {
-		const foodName = formData.get("food");
-		const amount = formData.get("amount");
-		await fetch(
-			`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${amount}`,
-		);
-	}
-
-	return redirect(request.url);
-}
+export function mealsPageAction() {}
 
 /**
  * An overview of the meals consumed on a particular date.
  */
 export default function MealsPage() {
-	const { user, date, meals } = useLoaderData();
+	const { user, date, meals: mealsArr } = useLoaderData();
 
-	meals.forEach((meal) => {
-		meal.totalKcal = parseInt(((meal.kcal * meal.amount) / 100).toFixed(), 10);
-		meal.totalProtein = parseInt(
+	const [mealsState, setMealsState] = useState(mealsArr);
+
+	let meals = mealsState.map((meal) => {
+		const totalKcal = parseInt(((meal.kcal * meal.amount) / 100).toFixed(), 10);
+		const totalProtein = parseInt(
 			((meal.protein * meal.amount) / 100).toFixed(),
 			10,
 		);
+		return { ...meal, totalKcal, totalProtein };
 	});
 
 	//Descending by total calories per meal.
-	meals.sort((m1, m2) => {
+	meals = meals.toSorted((m1, m2) => {
 		if (m1.totalKcal > m2.totalKcal) {
 			return -1;
 		} else if (m1.totalKcal < m2.totalKcal) {
@@ -89,28 +57,65 @@ export default function MealsPage() {
 
 	//TODO: Extract meals list into component
 	const mealsList = meals.map((meal) => {
-		const { food_id, name, amount, kcal, protein, totalKcal, totalProtein } =
-			meal;
+		const {
+			food_id: foodId,
+			name,
+			amount,
+			kcal,
+			protein,
+			totalKcal,
+			totalProtein,
+		} = meal;
 
 		return (
-			<li key={food_id}>
+			<li key={foodId}>
 				<div className="meal-top">
 					<h2>{name}</h2>
 					<div>
 						<h2>{amount}g</h2>
 						<button
 							onClick={() => {
-								setEditingMealId(editingMealId === food_id ? null : food_id);
+								setEditingMealId(editingMealId === foodId ? null : foodId);
 							}}
 						>
 							<i className="bx bx-pencil" />
 						</button>
 					</div>
 				</div>
-				{editingMealId === food_id ? (
+				{editingMealId === foodId ? (
 					<EditMealForm
-						mealId={food_id}
-						onFormClose={() => setEditingMealId(null)}
+						mealId={foodId}
+						cancelEdit={() => setEditingMealId(null)}
+						onMealEdit={(newAmount) => {
+							fetch(
+								`http://localhost:9999/del-meal?user=${user}&date=${date}&foodId=${foodId}`,
+							)
+								.then((res) => res.json())
+								.then(({ name: foodName }) => {
+									return fetch(
+										`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${newAmount}`,
+									);
+								})
+								.then((res) => res.json())
+								.then((newMeal) => {
+									const nextMeals = mealsState.filter(
+										(meal) => meal.food_id !== newMeal.food_id,
+									);
+									setMealsState([...nextMeals, newMeal]);
+									setEditingMealId(null);
+								});
+						}}
+						onMealDelete={() => {
+							fetch(
+								`http://localhost:9999/del-meal?user=${user}&date=${date}&foodId=${foodId}`,
+							).then(() => {
+								const nextMeals = mealsState.filter(
+									(meal) => meal.food_id !== foodId,
+								);
+								setMealsState(nextMeals);
+								setEditingMealId(null);
+							});
+						}}
 					/>
 				) : (
 					<ul className="meal-info-list">
@@ -154,7 +159,6 @@ export default function MealsPage() {
 		[0, 0],
 	);
 
-	//TODO: Button for deleting a meal
 	return (
 		<div className="current-window meals-window">
 			<header>
@@ -169,8 +173,18 @@ export default function MealsPage() {
 				dialogRef={dialogRef}
 				allFoods={allFoods}
 				{...{ matchingFoods, setMatchingFoods }}
-				onSubmit={() => {
-					dialogRef.current.close();
+				onSubmit={({ foodName, amount }) => {
+					fetch(
+						`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${amount}`,
+					)
+						.then((res) => res.json())
+						.then((newMeal) => {
+							const nextMeals = mealsState.filter(
+								(meal) => meal.food_id !== newMeal.food_id,
+							);
+							setMealsState([...nextMeals, newMeal]);
+							dialogRef.current.close();
+						});
 				}}
 			/>
 			<button className="add-meal-btn" onClick={openAddMealDialog}>
@@ -180,11 +194,18 @@ export default function MealsPage() {
 	);
 }
 
-function EditMealForm({ mealId, onFormClose }) {
+function EditMealForm({ cancelEdit, onMealEdit, onMealDelete }) {
 	const [newAmount, setNewAmount] = useState("");
+	const [deleteMealPending, setDeleteMealPending] = useState(false);
 
 	return (
-		<Form method="post" className="edit-meal-form" onSubmit={onFormClose}>
+		<Form
+			method="post"
+			className="edit-meal-form"
+			onSubmit={() => {
+				onMealEdit(newAmount);
+			}}
+		>
 			<label htmlFor="new-amount">New amount in grams</label>
 			<input
 				className="underlined-input"
@@ -195,17 +216,32 @@ function EditMealForm({ mealId, onFormClose }) {
 				onChange={(e) => setNewAmount(e.target.value)}
 			/>
 			<div className="form-btn-wrapper">
-				<button type="button" onClick={onFormClose}>
-					Cancel
-				</button>
 				<button
-					type="submit"
-					disabled={newAmount.trim() === ""}
-					name="intent"
-					value={`edit-meal-${mealId}`}
+					className={`del-meal-btn ${deleteMealPending ? "highlight-rect-btn" : ""}`}
+					type="button"
+					onClick={(e) => {
+						if (deleteMealPending) {
+							onMealDelete();
+						} else {
+							setDeleteMealPending(true);
+							setTimeout(() => setDeleteMealPending(false), 3000);
+						}
+					}}
 				>
-					Ok
+					{deleteMealPending ? (
+						"Click to delete"
+					) : (
+						<i className="bx bx-trash" />
+					)}
 				</button>
+				<div className="form-btn-wrapper">
+					<button type="button" onClick={cancelEdit}>
+						Cancel
+					</button>
+					<button type="submit" disabled={newAmount.trim() === ""}>
+						Ok
+					</button>
+				</div>
 			</div>
 		</Form>
 	);
@@ -221,28 +257,31 @@ function AddMealDialog({
 	setMatchingFoods,
 	onSubmit,
 }) {
-	const [selectedFoodName, setSelectedFoodName] = useState("");
+	const [foodName, setSelectedFoodName] = useState("");
 	const [amount, setAmount] = useState("");
 	const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
 
 	const canSubmit =
-		allFoods.some((food) => food.name === selectedFoodName) && amount > 0;
+		allFoods.some((food) => food.name === foodName) && amount > 0;
 
 	return (
 		<dialog className="add-meal-dialog" closedby="any" ref={dialogRef}>
 			<h2>Add meal</h2>
-			<Form method="post" autoComplete="off" onSubmit={onSubmit}>
+			<Form
+				method="post"
+				autoComplete="off"
+				onSubmit={() => onSubmit({ foodName, amount })}
+			>
 				<div className="add-meal-input-div">
 					<label htmlFor="food">Food</label>
 					<input
 						className="underlined-input"
 						name="food"
-						type="text"
-						value={selectedFoodName}
-						onFocus={(e) => {
+						value={foodName}
+						onFocus={() => {
 							setShowFoodSuggestions(true);
 						}}
-						onBlur={(e) => {
+						onBlur={() => {
 							//TODO: Find a more reliable solution for hiding the food suggestions upon blur while still registering click on li.
 							setTimeout(() => {
 								setShowFoodSuggestions(false);
@@ -264,7 +303,7 @@ function AddMealDialog({
 								return (
 									<li
 										key={food.id}
-										onClick={(e) => {
+										onClick={() => {
 											setSelectedFoodName(food.name);
 											setShowFoodSuggestions(false);
 											document.querySelector("input[name='amount']").focus();
@@ -292,14 +331,13 @@ function AddMealDialog({
 					/>
 				</div>
 				<div className="form-btn-wrapper">
-					<button type="button" onClick={(e) => dialogRef.current.close()}>
+					<button type="button" onClick={() => dialogRef.current.close()}>
 						Cancel
 					</button>
 					<button
 						type="submit"
 						disabled={!canSubmit}
-						name="intent"
-						value="add-meal"
+						className="highlight-rect-btn"
 					>
 						Ok
 					</button>

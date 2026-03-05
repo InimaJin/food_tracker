@@ -66,23 +66,24 @@ header.app-main-header {
 }
 
 .form-btn-wrapper {
-	margin-top: 4px;
 	display: flex;
 	justify-content: space-between;
+	align-items: stretch;
 
 	button {
+		font-size: 1.2rem;
 		background: none;
 		border: none;
 		outline: none;
 		padding: 4px;
 	}
-	button[type="submit"] {
-		background: black;
-		border: black;
-		color: white;
-		outline: none;
+
+	.highlight-rect-btn {
 		border-radius: 4px;
+		background: black;
+		color: white;
 	}
+
 	button:disabled {
 		opacity: 0;
 	}
@@ -106,6 +107,7 @@ header.app-main-header {
 		div {
 			display: flex;
 			justify-content: space-evenly;
+			font-size: 1.2rem;
 		}
 	}
 
@@ -127,6 +129,7 @@ header.app-main-header {
 		.meal-top {
 			display: flex;
 			justify-content: space-between;
+			font-size: 1.7rem;
 
 			div {
 				display: flex;
@@ -149,6 +152,7 @@ header.app-main-header {
 
 		.meal-top h2 {
 			font-weight: normal;
+			font-size: inherit;
 		}
 
 		.meal-info-list {
@@ -164,6 +168,34 @@ header.app-main-header {
 		.edit-meal-form {
 			display: flex;
 			flex-direction: column;
+		}
+
+		.edit-meal-form > .form-btn-wrapper {
+			margin-top: 8px;
+
+			.del-meal-btn {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			.del-meal-btn .del-confirm {
+				padding: 4px;
+				background: black;
+				color: white;
+				border-radius: 8px;
+			}
+
+			.form-btn-wrapper {
+				flex: 4;
+				justify-content: end;
+				gap: 8px;
+			}
+		}
+
+		.meal-info-list,
+		.edit-meal-form {
+			font-size: 1.2rem;
 		}
 	}
 
