@@ -285,7 +285,7 @@ export default function MealsPage() {
 
 	const [mealsState, setMealsState] = useState(mealsArr);
 
-	let meals = mealsState.map((meal) => {
+	const meals = mealsState.map((meal) => {
 		const totalKcal = parseInt(((meal.kcal * meal.amount) / 100).toFixed(), 10);
 		const totalProtein = parseInt(
 			((meal.protein * meal.amount) / 100).toFixed(),
@@ -295,14 +295,7 @@ export default function MealsPage() {
 	});
 
 	//Descending by total calories per meal.
-	meals = meals.toSorted((m1, m2) => {
-		if (m1.totalKcal > m2.totalKcal) {
-			return -1;
-		} else if (m1.totalKcal < m2.totalKcal) {
-			return 1;
-		}
-		return 0;
-	});
+	meals.sort((m1, m2) => m2.totalKcal - m1.totalKcal);
 
 	const [editingMealId, setEditingMealId] = useState(null);
 
