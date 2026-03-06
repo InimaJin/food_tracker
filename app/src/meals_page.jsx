@@ -232,7 +232,7 @@ function AddMealDialog({
 							{matchingFoods.map((food) => {
 								return (
 									<li
-										key={food.id}
+										key={food.food_id}
 										onClick={() => {
 											setSelectedFoodName(food.name);
 											setShowFoodSuggestions(false);

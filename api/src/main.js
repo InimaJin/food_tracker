@@ -14,7 +14,7 @@ const sql = postgres({
 /**
  * Retrieve a list of all foods owned by the given user.
  * Request query must contain: user.
- * Each food in the array looks like this: { id, name, kcal (per 100g), protein (per 100g) }.
+ * Each food in the array looks like this: { food_id, name, kcal (per 100g), protein (per 100g) }.
  */
 app.get("/foods", async (req, res) => {
 	const { user } = req.query;
@@ -23,7 +23,7 @@ app.get("/foods", async (req, res) => {
 	}
 
 	const foods = await sql`
-		SELECT id, name, kcal, protein FROM foods WHERE owner=${user}
+		SELECT id AS food_id, name, kcal, protein FROM foods WHERE owner=${user}
 	`;
 
 	res.json(foods);
@@ -108,7 +108,8 @@ app.get("/del-meal", async (req, res) => {
 	if (delArr.count > 0) {
 		const food = (
 			await sql`
-			SELECT * FROM foods WHERE id=${foodId} AND owner=${user};
+			SELECT id AS food_id, name, owner, kcal, protein FROM foods 
+			WHERE id=${foodId} AND owner=${user};
 		`
 		)[0];
 		res.json(food);
