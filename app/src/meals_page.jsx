@@ -126,14 +126,8 @@ function Meal({
 					cancelEdit={() => setEditingMealId(null)}
 					onMealEdit={(newAmount) => {
 						fetch(
-							`http://localhost:9999/del-meal?user=${user}&date=${date}&foodId=${foodId}`,
+							`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${name}&amount=${newAmount}&overwrite=true`,
 						)
-							.then((res) => res.json())
-							.then(({ name: foodName }) => {
-								return fetch(
-									`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${newAmount}`,
-								);
-							})
 							.then((res) => res.json())
 							.then((newMeal) => {
 								const nextMeals = mealsState.filter(

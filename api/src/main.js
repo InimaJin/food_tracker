@@ -52,10 +52,14 @@ app.get("/meals", async (req, res) => {
 /**
  * Add a meal to the database. The food must already exist for the specified user.
  * Request query must contain: user, date, foodName, amount.
- * Response is an object for the added meal: { food_id, name, amount, kcal, protein }.
+ * Optional query param: overwrite - if true and the given meal already exists,
+ * the existing meal's amount is overwritten with the new amount.
+ * If false or not specified and the given meal already exists, the existing meal's amount is
+ * incremented by the given amount value.
+ * Response is an object for the meal: { food_id, name, amount, kcal, protein }.
  */
 app.get("/add-meal", async (req, res) => {
-	const { user, date, foodName, amount } = req.query;
+	const { user, date, foodName, amount, overwrite } = req.query;
 
 	const idArr = await sql`
 		SELECT id FROM foods WHERE name=${foodName} AND owner=${user} 
@@ -74,14 +78,14 @@ app.get("/add-meal", async (req, res) => {
 				INSERT INTO meals (date, food_id, amount) VALUES (${date}, ${foodId}, ${amount});
 			`,
 			)
-			.catch(
-				(err) =>
-					//If the desired food already has a record for the given day, the above fails due to unique key violation.
-					//So, we simply update the amount in the record:
-					sql`
-				UPDATE meals SET amount = amount + ${amount} WHERE food_id = ${foodId} AND date = ${date};
-			`,
-			);
+			.catch((err) => {
+				const baseVal = overwrite === "true" ? sql(0) : sql("amount");
+				//If the desired food already has a record for the given day, the above fails due to unique key violation.
+				return sql`
+					UPDATE meals SET amount = ${baseVal} + ${amount}
+					WHERE food_id = ${foodId} AND date = ${date};
+				`;
+			});
 	});
 
 	const addedMeal = await sql`
