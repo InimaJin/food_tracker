@@ -230,7 +230,7 @@ header.app-main-header {
 			align-items: stretch;
 			gap: 16px;
 
-			.add-meal-input-div {
+			.add-meal-input-wrapper {
 				position: relative;
 				display: flex;
 				flex-direction: column;

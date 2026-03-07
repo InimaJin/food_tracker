@@ -182,21 +182,23 @@ function AddMealDialog({
 	onSubmit,
 }) {
 	const [foodName, setSelectedFoodName] = useState("");
+	const [kcal, setKcal] = useState("");
+	const [protein, setProtein] = useState("");
 	const [amount, setAmount] = useState("");
 	const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
+	const [lockInputs, setLockInputs] = useState(false);
 
-	const canSubmit =
-		allFoods.some((food) => food.name === foodName) && amount > 0;
-
+	const newFoodValidInput = kcal !== "" && protein !== "";
+	const canSubmit = foodName && amount > 0 && (lockInputs || newFoodValidInput);
 	return (
 		<dialog className="add-meal-dialog" closedby="any" ref={dialogRef}>
 			<h2>Add meal</h2>
 			<Form
 				method="post"
 				autoComplete="off"
-				onSubmit={() => onSubmit({ foodName, amount })}
+				onSubmit={() => onSubmit({ foodName, kcal, protein, amount })}
 			>
-				<div className="add-meal-input-div">
+				<div className="add-meal-input-wrapper">
 					<label htmlFor="food">Food</label>
 					<input
 						className="underlined-input"
@@ -212,13 +214,23 @@ function AddMealDialog({
 							}, 100);
 						}}
 						onChange={(e) => {
-							const input = e.target.value.toLowerCase();
+							const input = e.target.value;
+							const inputLower = input.toLowerCase();
 							const nextMatchingFoods = allFoods.filter(({ name }) => {
 								name = name.toLowerCase();
-								return name.includes(input);
+								return name.includes(inputLower);
 							});
-							setSelectedFoodName(e.target.value);
+							setSelectedFoodName(input);
 							setMatchingFoods(nextMatchingFoods);
+
+							const matchingFood = allFoods.find((food) => food.name === input);
+							if (matchingFood) {
+								setKcal(matchingFood.kcal);
+								setProtein(matchingFood.protein);
+								setLockInputs(true);
+							} else {
+								setLockInputs(false);
+							}
 						}}
 					/>
 					{showFoodSuggestions && (
@@ -241,7 +253,31 @@ function AddMealDialog({
 						</ul>
 					)}
 				</div>
-				<div className="add-meal-input-div">
+				<div className="add-meal-input-wrapper">
+					<label htmlFor="kcal">Kcal/ 100g</label>
+					<input
+						className="underlined-input"
+						type="number"
+						name="kcal"
+						min="0"
+						value={kcal}
+						onChange={(e) => setKcal(e.target.value)}
+						disabled={lockInputs}
+					/>
+				</div>
+				<div className="add-meal-input-wrapper">
+					<label htmlFor="protein">Protein/ 100g</label>
+					<input
+						className="underlined-input"
+						type="number"
+						name="protein"
+						min="0"
+						value={protein}
+						onChange={(e) => setProtein(e.target.value)}
+						disabled={lockInputs}
+					/>
+				</div>
+				<div className="add-meal-input-wrapper">
 					<label htmlFor="amount">Amount in grams</label>
 					<input
 						className="underlined-input"
@@ -343,7 +379,15 @@ export default function MealsPage() {
 				dialogRef={dialogRef}
 				allFoods={allFoods}
 				{...{ matchingFoods, setMatchingFoods }}
-				onSubmit={({ foodName, amount }) => {
+				onSubmit={async ({ foodName, kcal, protein, amount }) => {
+					const matchingFood = allFoods.find((food) => food.name === foodName);
+					if (!matchingFood) {
+						//API call for adding the food first.
+						await fetch(
+							`http://localhost:9999/add-food?user=${user}&foodName=${foodName}&kcal=${kcal}&protein=${protein}`,
+						);
+					}
+
 					fetch(
 						`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${amount}`,
 					)
