@@ -30,6 +30,23 @@ app.get("/foods", async (req, res) => {
 });
 
 /**
+ * Add a food for a given user.
+ * Request query must contain: user, foodName, kcal, protein.
+ * The response is the newly added food: { food_id, name, kcal, protein }.
+ */
+app.get("/add-food", async (req, res) => {
+	const { user, foodName, kcal, protein } = req.query;
+
+	const newFood = await sql`
+		INSERT INTO foods (name, owner, kcal, protein) 
+		VALUES (${foodName}, ${user}, ${kcal}, ${protein})
+		RETURNING id AS food_id, name, kcal, protein;
+	`;
+
+	res.json(newFood);
+});
+
+/**
  * Retrieve a list of meals for a given user and date.
  * Request query must contain: user, date.
  * Each meal entry in the array looks like this: { food_id, name, amount [g], kcal (per 100g), protein [g / 100g]}.
@@ -56,7 +73,7 @@ app.get("/meals", async (req, res) => {
  * the existing meal's amount is overwritten with the new amount.
  * If false or not specified and the given meal already exists, the existing meal's amount is
  * incremented by the given amount value.
- * Response is an object for the meal: { food_id, name, amount, kcal, protein }.
+ * Response is an object for the meal if the food exists: { food_id, name, amount, kcal, protein }.
  */
 app.get("/add-meal", async (req, res) => {
 	const { user, date, foodName, amount, overwrite } = req.query;
