@@ -137,8 +137,6 @@ app.get("/del-meal", async (req, res) => {
 	}
 });
 
-//TODO: Endpoint for creating a new food for given user.
-
 const port = 9999;
 app.listen(port, () => {
 	console.log(`Listening on port ${port}!`);
