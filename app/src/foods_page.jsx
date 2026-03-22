@@ -87,7 +87,7 @@ export default function FoodsPage() {
 				key={foodId}
 				className="food-card"
 				onClick={() => {
-					setEditFood(food);
+					setEditFood(editFood.name ? {} : food);
 				}}
 			>
 				<h2>{name}</h2>
