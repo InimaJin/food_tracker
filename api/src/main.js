@@ -47,6 +47,25 @@ app.get("/add-food", async (req, res) => {
 });
 
 /**
+ * Update a food for a given user.
+ * Request query must contain: user, foodId, kcal, protein.
+ * kcal and protein are the new values for the food associated with foodId.
+ * Returns the updated food, if it exists.
+ */
+app.get("/edit-food", async (req, res) => {
+	//TODO: Optional parameter for deleting a food.
+	const { user, foodId, kcal, protein } = req.query;
+
+	const updatedFood = (
+		await sql`
+		UPDATE foods SET kcal=${kcal}, protein=${protein} WHERE id=${foodId} AND owner=${user} RETURNING name, id AS food_id, owner, kcal, protein
+	`
+	)[0];
+
+	res.json(updatedFood);
+});
+
+/**
  * Retrieve a list of meals for a given user and date.
  * Request query must contain: user, date.
  * Each meal entry in the array looks like this: { food_id, name, amount [g], kcal (per 100g), protein [g / 100g]}.

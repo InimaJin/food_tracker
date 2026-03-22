@@ -188,17 +188,28 @@ function AddMealDialog({
 	const [showFoodSuggestions, setShowFoodSuggestions] = useState(false);
 	const [lockInputs, setLockInputs] = useState(false);
 
+	function lockInputsIfFoodMatch(enteredFoodname) {
+		const matchingFood = allFoods.find((food) => food.name === enteredFoodname);
+		if (matchingFood) {
+			setKcal(matchingFood.kcal);
+			setProtein(matchingFood.protein);
+			setLockInputs(true);
+		} else {
+			setLockInputs(false);
+		}
+	}
+
 	const newFoodValidInput = kcal !== "" && protein !== "";
 	const canSubmit = foodName && amount > 0 && (lockInputs || newFoodValidInput);
 	return (
-		<dialog className="add-meal-dialog" closedby="any" ref={dialogRef}>
+		<dialog closedby="any" ref={dialogRef}>
 			<h2>Add meal</h2>
 			<Form
 				method="post"
 				autoComplete="off"
 				onSubmit={() => onSubmit({ foodName, kcal, protein, amount })}
 			>
-				<div className="add-meal-input-wrapper">
+				<div className="dialog-input-wrapper">
 					<label htmlFor="food">Food</label>
 					<input
 						className="underlined-input"
@@ -223,37 +234,33 @@ function AddMealDialog({
 							setSelectedFoodName(input);
 							setMatchingFoods(nextMatchingFoods);
 
-							const matchingFood = allFoods.find((food) => food.name === input);
-							if (matchingFood) {
-								setKcal(matchingFood.kcal);
-								setProtein(matchingFood.protein);
-								setLockInputs(true);
-							} else {
-								setLockInputs(false);
-							}
+							lockInputsIfFoodMatch(input);
 						}}
 					/>
-					{showFoodSuggestions && (
+					{showFoodSuggestions && matchingFoods.length !== 0 && (
 						<ul className="food-suggestions-list">
-							{matchingFoods.map((food) => {
-								return (
-									<li
-										key={food.food_id}
-										onClick={() => {
-											setSelectedFoodName(food.name);
-											setShowFoodSuggestions(false);
-											document.querySelector("input[name='amount']").focus();
-										}}
-									>
-										<span className="suggestions-foodname">{food.name}</span>
-										<span>{food.kcal}kcal/ 100g</span>
-									</li>
-								);
-							})}
+							{matchingFoods
+								.toSorted((f1, f2) => f1.name.localeCompare(f2.name))
+								.map((food) => {
+									return (
+										<li
+											key={food.food_id}
+											onClick={() => {
+												setSelectedFoodName(food.name);
+												setShowFoodSuggestions(false);
+												lockInputsIfFoodMatch(food.name);
+												document.querySelector("input[name='amount']").focus();
+											}}
+										>
+											<span className="suggestions-foodname">{food.name}</span>
+											<span>{food.kcal}kcal/ 100g</span>
+										</li>
+									);
+								})}
 						</ul>
 					)}
 				</div>
-				<div className="add-meal-input-wrapper">
+				<div className="dialog-input-wrapper">
 					<label htmlFor="kcal">Kcal/ 100g</label>
 					<input
 						className="underlined-input"
@@ -265,7 +272,7 @@ function AddMealDialog({
 						disabled={lockInputs}
 					/>
 				</div>
-				<div className="add-meal-input-wrapper">
+				<div className="dialog-input-wrapper">
 					<label htmlFor="protein">Protein/ 100g</label>
 					<input
 						className="underlined-input"
@@ -277,7 +284,7 @@ function AddMealDialog({
 						disabled={lockInputs}
 					/>
 				</div>
-				<div className="add-meal-input-wrapper">
+				<div className="dialog-input-wrapper">
 					<label htmlFor="amount">Amount in grams</label>
 					<input
 						className="underlined-input"
@@ -366,15 +373,15 @@ export default function MealsPage() {
 	);
 
 	return (
-		<div className="current-window meals-window">
+		<div className="current-window scroll-window meals-window">
 			<header>
 				<h1>Meals for {date}</h1>
 				<div>
 					<span>Total kcal: {totalKcal}</span>
-					<span>Total protein: {totalProtein}</span>
+					<span>Total protein: {totalProtein}g</span>
 				</div>
 			</header>
-			<ul className="meals-list">{mealsList}</ul>
+			<ul className="scroll-window-main meals-list">{mealsList}</ul>
 			<AddMealDialog
 				dialogRef={dialogRef}
 				allFoods={allFoods}
@@ -382,7 +389,6 @@ export default function MealsPage() {
 				onSubmit={async ({ foodName, kcal, protein, amount }) => {
 					const matchingFood = allFoods.find((food) => food.name === foodName);
 					if (!matchingFood) {
-						//API call for adding the food first.
 						await fetch(
 							`http://localhost:9999/add-food?user=${user}&foodName=${foodName}&kcal=${kcal}&protein=${protein}`,
 						);

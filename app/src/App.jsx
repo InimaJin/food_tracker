@@ -9,8 +9,11 @@ export default function App() {
 			<Outlet />
 			<header className="app-main-header">
 				<nav>
-					<Link to={"/"}>
+					<Link to="/">
 						<i className="bx bx-calendar-alt" />
+					</Link>
+					<Link to="foods">
+						<i className="bx bx-burger-alt" />
 					</Link>
 				</nav>
 			</header>
