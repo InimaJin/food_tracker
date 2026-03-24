@@ -68,10 +68,11 @@ app.get("/edit-food", async (req, res) => {
 /**
  * Retrieve a list of meals for a given user and date.
  * Request query must contain: user, date.
- * Each meal entry in the array looks like this: { food_id, name, amount [g], kcal (per 100g), protein [g / 100g]}.
+ * Optional query parameter: endDate. If specified, all meals between <date> and <endDate> inclusive are returned.
+ * Each meal entry in the array looks like this: { food_id, name, amount [g], kcal (per 100g), protein [g / 100g], date}.
  */
 app.get("/meals", async (req, res) => {
-	const { user, date } = req.query;
+	const { user, date, endDate } = req.query;
 
 	if (!user || !date) {
 		res.status(400).send("Undefined parameter!");
@@ -79,8 +80,8 @@ app.get("/meals", async (req, res) => {
 	}
 
 	const meals = await sql`
-		SELECT food_id, name, amount, kcal, protein
-        FROM foods, meals WHERE owner=${user} AND id=food_id AND date=${date};
+		SELECT food_id, name, amount, kcal, protein, date
+        FROM foods, meals WHERE owner=${user} AND id=food_id AND date BETWEEN ${date} AND ${endDate ? endDate : date};
 	`;
 	res.json(meals);
 });
