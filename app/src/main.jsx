@@ -6,6 +6,7 @@ import App from "./App.jsx";
 import DateSelectPage, { dateSelectAction } from "./date_selection_page.jsx";
 import MealsPage, { mealsPageAction, mealsPageLoader } from "./meals_page.jsx";
 import FoodsPage, { foodsPageAction, foodsPageLoader } from "./foods_page.jsx";
+import StatsPage, { statsPageLoader } from "./stats_page.jsx";
 
 const router = createBrowserRouter([
 	{
@@ -28,6 +29,11 @@ const router = createBrowserRouter([
 				loader: foodsPageLoader,
 				action: foodsPageAction,
 				element: <FoodsPage />,
+			},
+			{
+				path: "stats",
+				loader: statsPageLoader,
+				element: <StatsPage />,
 			},
 		],
 	},

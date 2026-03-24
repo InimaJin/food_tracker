@@ -35,16 +35,7 @@ header.app-main-header {
 
 .current-window {
 	height: 90%;
-	padding: 32px;
-	overflow-y: auto;
-}
-
-.scroll-window {
-	display: flex;
-	flex-direction: column;
-	padding: 0;
 	padding-top: 32px;
-	gap: 16px;
 
 	header {
 		font-weight: normal;
@@ -54,6 +45,12 @@ header.app-main-header {
 			font-weight: normal;
 		}
 	}
+}
+
+.scroll-window {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
 
 	.scroll-window-main {
 		flex-grow: 1;
@@ -298,4 +295,11 @@ dialog {
 			}
 		}
 	}
+}
+
+.stats-container {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
 }

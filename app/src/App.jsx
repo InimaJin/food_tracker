@@ -15,6 +15,9 @@ export default function App() {
 					<Link to="foods">
 						<i className="bx bx-burger-alt" />
 					</Link>
+					<Link to="stats">
+						<i className="bx bx-chart-line" />
+					</Link>
 				</nav>
 			</header>
 		</>
