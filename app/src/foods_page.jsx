@@ -58,7 +58,7 @@ function EditFoodDialog({ ref, food, setEditFood, onSubmit }) {
 					<button type="button" onClick={() => ref.current.close()}>
 						Cancel
 					</button>
-					<button type="submit" className="highlight-rect-btn">
+					<button type="submit" className="highlight-btn">
 						Ok
 					</button>
 				</div>

@@ -53,7 +53,7 @@ function EditMealForm({ cancelEdit, onMealEdit, onMealDelete }) {
 			/>
 			<div className="form-btn-wrapper">
 				<button
-					className={`del-meal-btn ${deleteMealPending ? "highlight-rect-btn" : ""}`}
+					className={`del-meal-btn ${deleteMealPending ? "highlight-btn" : ""}`}
 					type="button"
 					onClick={() => {
 						if (deleteMealPending) {
@@ -74,7 +74,11 @@ function EditMealForm({ cancelEdit, onMealEdit, onMealDelete }) {
 					<button type="button" onClick={cancelEdit}>
 						Cancel
 					</button>
-					<button type="submit" disabled={newAmount.trim() === ""}>
+					<button
+						type="submit"
+						className="highlight-btn"
+						disabled={newAmount.trim() === ""}
+					>
 						Ok
 					</button>
 				</div>
@@ -301,11 +305,7 @@ function AddMealDialog({
 					<button type="button" onClick={() => dialogRef.current.close()}>
 						Cancel
 					</button>
-					<button
-						type="submit"
-						disabled={!canSubmit}
-						className="highlight-rect-btn"
-					>
+					<button type="submit" disabled={!canSubmit} className="highlight-btn">
 						Ok
 					</button>
 				</div>
