@@ -10,30 +10,69 @@ export function statsPageLoader() {
 export default function StatsPage() {
 	const user = useLoaderData();
 
-	const [data, setData] = useState([]);
+	const [data, setData] = useState();
 
 	function calcDates() {
 		const today = new Date();
 		const [month, year] = [today.getMonth(), today.getFullYear()];
-		const startDate = new Date(year, month, 2).toISOString().split("T")[0];
-		const endDate = new Date(year, month + 1, 1).toISOString().split("T")[0];
+		const startDate = new Date(year, month, 2);
+		const endDate = new Date(year, month + 1, 1);
 		return [startDate, endDate];
 	}
 
 	const dates = calcDates();
 	const [startDate, setStartDate] = useState(dates[0]);
 	const [endDate, setEndDate] = useState(dates[1]);
+	const validDates =
+		!startDate || !endDate || startDate.getTime() <= endDate.getTime();
 
-	const buttonRef = useRef();
+	function loadData() {
+		fetch(
+			`http://localhost:9999/meals?user=${user}&date=${startDate}&endDate=${endDate}`,
+		)
+			.then((res) => res.json())
+			.then((json) => {
+				let nextData = json.reduce((map, meal) => {
+					const date = meal.date;
+					if (!map.has(date)) {
+						map.set(date, { kcal: 0, protein: 0 });
+					}
+					const obj = map.get(date);
+					obj.kcal += parseInt(((meal.kcal * meal.amount) / 100).toFixed(), 10);
+					obj.protein += parseInt(
+						((meal.protein * meal.amount) / 100).toFixed(),
+						10,
+					);
 
-	const containerRef = useRef();
+					return map;
+				}, new Map());
+
+				nextData = Array.from(nextData, (day) => {
+					const values = day[1];
+					return {
+						date: new Date(day[0]),
+						kcal: values.kcal,
+						protein: values.protein,
+					};
+				});
+
+				setData(nextData);
+			});
+	}
+
+	const plotContainerRef = useRef();
 	useEffect(() => {
+		if (!data) {
+			loadData();
+			return;
+		}
+
 		if (data.length === 0) {
-			buttonRef.current.click();
 			return;
 		}
 
 		const plotOptions = {
+			grid: true,
 			margin: 64,
 			style: {
 				fontSize: 18,
@@ -43,33 +82,36 @@ export default function StatsPage() {
 		const kcalPlot = Plot.plot({
 			...plotOptions,
 			y: {
-				grid: true,
 				label: "kcal",
 			},
 			marks: [
 				Plot.ruleY([0]),
-				Plot.line(data, { x: "date", y: "kcal", sort: "date" }),
+				Plot.line(data, { x: "date", y: "kcal", sort: "date",strokeWidth: 2}),
 			],
 		});
 		const proteinPlot = Plot.plot({
 			...plotOptions,
 			y: {
-				grid: true,
 				label: "protein [g]",
 			},
 			marks: [
 				Plot.ruleY([0]),
-				Plot.line(data, { x: "date", y: "protein", sort: "date" }),
+				Plot.line(data, { x: "date", y: "protein", sort: "date", strokeWidth: 2 }),
 			],
 		});
-		containerRef.current.append(kcalPlot);
-		containerRef.current.append(proteinPlot);
+		plotContainerRef.current.append(kcalPlot);
+		plotContainerRef.current.append(proteinPlot);
 
 		return () => {
 			kcalPlot.remove();
 			proteinPlot.remove();
 		};
 	});
+
+	//Returns the string representing the date-portion of a given date in ISO 8601.
+	function toISODateOnly(date) {
+		return date.toISOString().split("T")[0];
+	}
 
 	return (
 		<div className="current-window scroll-window stats-window">
@@ -84,65 +126,31 @@ export default function StatsPage() {
 						type="date"
 						name="start-date"
 						className="underlined-input"
-						value={startDate}
+						value={toISODateOnly(startDate)}
 						onChange={(e) => {
-							setStartDate(e.target.value);
+							setStartDate(new Date(e.target.value));
 						}}
 					/>
 					<input
 						type="date"
 						name="end-date"
 						className="underlined-input"
-						value={endDate}
+						value={toISODateOnly(endDate)}
 						onChange={(e) => {
-							setEndDate(e.target.value);
+							setEndDate(new Date(e.target.value));
 						}}
 					/>
+					<div>
 					<button
-						disabled={!startDate || !endDate}
-						ref={buttonRef}
-						className="highlight-btn"
-						onClick={async () => {
-							fetch(
-								`http://localhost:9999/meals?user=${user}&date=${startDate}&endDate=${endDate}`,
-							)
-								.then((res) => res.json())
-								.then((json) => {
-									let nextData = json.reduce((map, meal) => {
-										const date = meal.date;
-										if (!map.has(date)) {
-											map.set(date, { kcal: 0, protein: 0 });
-										}
-										const obj = map.get(date);
-										obj.kcal += parseInt(
-											((meal.kcal * meal.amount) / 100).toFixed(),
-											10,
-										);
-										obj.protein += parseInt(
-											((meal.protein * meal.amount) / 100).toFixed(),
-											10,
-										);
-
-										return map;
-									}, new Map());
-
-									nextData = Array.from(nextData, (day) => {
-										const values = day[1];
-										return {
-											date: new Date(day[0]),
-											kcal: values.kcal,
-											protein: values.protein,
-										};
-									});
-
-									setData(nextData);
-								});
-						}}
+						disabled={!validDates}
+						className="highlight-btn icon-btn"
+						onClick={loadData}
 					>
-						Go!
+						<i className="bx bx-check" />
 					</button>
+					</div>
 				</div>
-				<div ref={containerRef} className="charts-container" />
+				<div ref={plotContainerRef} className="charts-container" />
 			</div>
 		</div>
 	);
