@@ -11,6 +11,7 @@ export default function StatsPage() {
 	const user = useLoaderData();
 
 	const [data, setData] = useState();
+	const [averages, setAverages] = useState({});
 
 	function calcDates() {
 		const today = new Date();
@@ -25,6 +26,10 @@ export default function StatsPage() {
 	const [endDate, setEndDate] = useState(dates[1]);
 	const validDates =
 		!startDate || !endDate || startDate.getTime() <= endDate.getTime();
+
+	const dayDiff = Math.ceil(
+		(endDate.getTime() - startDate.getTime()) / 86_400_000,
+	);
 
 	function loadData() {
 		fetch(
@@ -57,6 +62,17 @@ export default function StatsPage() {
 				});
 
 				setData(nextData);
+
+				let kcalAverage = 0;
+				let proteinAverage = 0;
+				for (const day of nextData) {
+					kcalAverage += day.kcal;
+					proteinAverage += day.protein;
+				}
+				setAverages({
+					kcal: Math.round(kcalAverage / dayDiff),
+					protein: Math.round(proteinAverage / dayDiff),
+				});
 			});
 	}
 
@@ -78,27 +94,39 @@ export default function StatsPage() {
 				fontSize: 18,
 			},
 		};
-		const rectOptions = {
-			x: "date",
-			interval: "day",
-			inset: 2,
-			ry2: 6,
-		};
 
 		const kcalPlot = Plot.plot({
 			...plotOptions,
-			marks: [Plot.ruleY([0]), Plot.rectY(data, { y: "kcal", ...rectOptions })],
-		});
-		const proteinPlot = Plot.plot({
-			...plotOptions,
 			y: {
-				label: "protein [g]",
+				label: `kcal (average: ${averages.kcal})`,
 			},
 			marks: [
 				Plot.ruleY([0]),
-				Plot.rectY(data, { y: "protein", ...rectOptions }),
+				Plot.ruleX(data, {
+					x: "date",
+					y: "kcal",
+					strokeWidth: 2.3,
+					markerEnd: "dot",
+				}),
 			],
 		});
+
+		const proteinPlot = Plot.plot({
+			...plotOptions,
+			y: {
+				label: `protein [g] (average: ${averages.protein})`,
+			},
+			marks: [
+				Plot.ruleY([0]),
+				Plot.ruleX(data, {
+					x: "date",
+					y: "protein",
+					strokeWidth: 2.3,
+					markerEnd: "dot",
+				}),
+			],
+		});
+
 		plotContainerRef.current.append(kcalPlot);
 		plotContainerRef.current.append(proteinPlot);
 
