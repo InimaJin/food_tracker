@@ -78,16 +78,16 @@ export default function StatsPage() {
 				fontSize: 18,
 			},
 		};
+		const rectOptions = {
+			x: "date",
+			interval: "day",
+			inset: 2,
+			ry2: 6,
+		};
 
 		const kcalPlot = Plot.plot({
 			...plotOptions,
-			y: {
-				label: "kcal",
-			},
-			marks: [
-				Plot.ruleY([0]),
-				Plot.line(data, { x: "date", y: "kcal", sort: "date",strokeWidth: 2}),
-			],
+			marks: [Plot.ruleY([0]), Plot.rectY(data, { y: "kcal", ...rectOptions })],
 		});
 		const proteinPlot = Plot.plot({
 			...plotOptions,
@@ -96,7 +96,7 @@ export default function StatsPage() {
 			},
 			marks: [
 				Plot.ruleY([0]),
-				Plot.line(data, { x: "date", y: "protein", sort: "date", strokeWidth: 2 }),
+				Plot.rectY(data, { y: "protein", ...rectOptions }),
 			],
 		});
 		plotContainerRef.current.append(kcalPlot);
@@ -141,13 +141,13 @@ export default function StatsPage() {
 						}}
 					/>
 					<div>
-					<button
-						disabled={!validDates}
-						className="highlight-btn icon-btn"
-						onClick={loadData}
-					>
-						<i className="bx bx-check" />
-					</button>
+						<button
+							disabled={!validDates}
+							className="highlight-btn icon-btn"
+							onClick={loadData}
+						>
+							<i className="bx bx-check" />
+						</button>
 					</div>
 				</div>
 				<div ref={plotContainerRef} className="charts-container" />
