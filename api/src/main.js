@@ -11,12 +11,14 @@ const sql = postgres({
 	username: "postgres",
 });
 
+const apiRoot = "/api";
+
 /**
  * Retrieve a list of all foods owned by the given user.
  * Request query must contain: user.
  * Each food in the array looks like this: { food_id, name, kcal (per 100g), protein (per 100g) }.
  */
-app.get("/foods", async (req, res) => {
+app.get(`${apiRoot}/foods`, async (req, res) => {
 	const { user } = req.query;
 	if (!user) {
 		res.status(400).send("No user specified.");
@@ -34,7 +36,7 @@ app.get("/foods", async (req, res) => {
  * Request query must contain: user, foodName, kcal, protein.
  * The response is the newly added food: { food_id, name, kcal, protein }.
  */
-app.get("/add-food", async (req, res) => {
+app.get(`${apiRoot}/add-food`, async (req, res) => {
 	const { user, foodName, kcal, protein } = req.query;
 
 	const newFood = await sql`
@@ -52,7 +54,7 @@ app.get("/add-food", async (req, res) => {
  * kcal and protein are the new values for the food associated with foodId.
  * Returns the updated food, if it exists.
  */
-app.get("/edit-food", async (req, res) => {
+app.get(`${apiRoot}/edit-food`, async (req, res) => {
 	//TODO: Optional parameter for deleting a food.
 	const { user, foodId, kcal, protein } = req.query;
 
@@ -71,7 +73,8 @@ app.get("/edit-food", async (req, res) => {
  * Optional query parameter: endDate. If specified, all meals between <date> and <endDate> inclusive are returned.
  * Each meal entry in the array looks like this: { food_id, name, amount [g], kcal (per 100g), protein [g / 100g], date}.
  */
-app.get("/meals", async (req, res) => {
+app.get(`${apiRoot}/meals`, async (req, res) => {
+	console.log(req);
 	const { user, date, endDate } = req.query;
 
 	if (!user || !date) {
@@ -95,7 +98,7 @@ app.get("/meals", async (req, res) => {
  * incremented by the given amount value.
  * Response is an object for the meal if the food exists: { food_id, name, amount, kcal, protein }.
  */
-app.get("/add-meal", async (req, res) => {
+app.get(`${apiRoot}/add-meal`, async (req, res) => {
 	const { user, date, foodName, amount, overwrite } = req.query;
 
 	const idArr = await sql`
@@ -138,7 +141,7 @@ app.get("/add-meal", async (req, res) => {
  * If no such meal exists, no response is issued. Otherwise, the response is
  * the food object the meal was associated with: { id, name, kcal, owner, protein }.
  */
-app.get("/del-meal", async (req, res) => {
+app.get(`${apiRoot}/del-meal`, async (req, res) => {
 	const { user, date, foodId } = req.query;
 	const delArr = await sql`
 		DELETE FROM meals WHERE food_id = ${foodId} AND date = ${date}
@@ -157,7 +160,7 @@ app.get("/del-meal", async (req, res) => {
 	}
 });
 
-const port = 9999;
+const port = 58327;
 app.listen(port, () => {
 	console.log(`Listening on port ${port}!`);
 });

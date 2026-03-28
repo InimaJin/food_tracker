@@ -1,6 +1,7 @@
 import * as Plot from "@observablehq/plot";
 import { useEffect, useRef, useState } from "react";
 import { useLoaderData } from "react-router-dom";
+import { apiRoot } from "./constants.json";
 
 export function statsPageLoader() {
 	const user = localStorage.getItem("user");
@@ -32,9 +33,7 @@ export default function StatsPage() {
 	);
 
 	function loadData() {
-		fetch(
-			`http://localhost:9999/meals?user=${user}&date=${startDate}&endDate=${endDate}`,
-		)
+		fetch(`${apiRoot}/meals?user=${user}&date=${startDate}&endDate=${endDate}`)
 			.then((res) => res.json())
 			.then((json) => {
 				let nextData = json.reduce((map, meal) => {

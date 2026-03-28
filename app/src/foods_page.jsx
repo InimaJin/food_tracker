@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { redirect, useLoaderData, Form } from "react-router-dom";
+import { apiRoot } from "./constants.json";
 
 export async function foodsPageLoader() {
 	const user = localStorage.getItem("user");
 	if (!user) {
 		return redirect("/");
 	}
-	const foods = await fetch(`http://localhost:9999/foods?user=${user}`).then(
-		(res) => res.json(),
+	const foods = await fetch(`${apiRoot}/foods?user=${user}`).then((res) =>
+		res.json(),
 	);
 
 	return { user, foods };
@@ -111,7 +112,7 @@ export default function FoodsPage() {
 
 	function onFoodEdit(newKcal, newProtein) {
 		fetch(
-			`http://localhost:9999/edit-food?user=${user}&foodId=${editFood.food_id}&kcal=${newKcal}&protein=${newProtein}`,
+			`${apiRoot}/edit-food?user=${user}&foodId=${editFood.food_id}&kcal=${newKcal}&protein=${newProtein}`,
 		)
 			.then((res) => res.json())
 			.then((updatedFood) => {

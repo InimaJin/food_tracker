@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { redirect, useLoaderData, Form } from "react-router-dom";
+import { apiRoot } from "./constants.json";
 
 /**
  * Load all meals for given user and date.
@@ -13,9 +14,9 @@ export async function mealsPageLoader({ request }) {
 
 	//TODO: Login prompt at start of app for initializing user email.
 	const user = localStorage.getItem("user");
-	const meals = await fetch(
-		`http://localhost:9999/meals?user=${user}&date=${date}`,
-	).then((res) => res.json());
+	const meals = await fetch(`${apiRoot}/meals?user=${user}&date=${date}`).then(
+		(res) => res.json(),
+	);
 
 	return {
 		user,
@@ -130,7 +131,7 @@ function Meal({
 					cancelEdit={() => setEditingMealId(null)}
 					onMealEdit={(newAmount) => {
 						fetch(
-							`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${name}&amount=${newAmount}&overwrite=true`,
+							`${apiRoot}/add-meal?user=${user}&date=${date}&foodName=${name}&amount=${newAmount}&overwrite=true`,
 						)
 							.then((res) => res.json())
 							.then((newMeal) => {
@@ -143,7 +144,7 @@ function Meal({
 					}}
 					onMealDelete={() => {
 						fetch(
-							`http://localhost:9999/del-meal?user=${user}&date=${date}&foodId=${foodId}`,
+							`${apiRoot}/del-meal?user=${user}&date=${date}&foodId=${foodId}`,
 						).then(() => {
 							const nextMeals = mealsState.filter(
 								(meal) => meal.food_id !== foodId,
@@ -357,7 +358,7 @@ export default function MealsPage() {
 	const [matchingFoods, setMatchingFoods] = useState([]);
 	function openAddMealDialog() {
 		dialogRef.current.showModal();
-		fetch(`http://localhost:9999/foods?user=${user}`)
+		fetch(`${apiRoot}/foods?user=${user}`)
 			.then((res) => res.json())
 			.then((foodsArr) => {
 				setAllFoods(foodsArr);
@@ -390,12 +391,12 @@ export default function MealsPage() {
 					const matchingFood = allFoods.find((food) => food.name === foodName);
 					if (!matchingFood) {
 						await fetch(
-							`http://localhost:9999/add-food?user=${user}&foodName=${foodName}&kcal=${kcal}&protein=${protein}`,
+							`${apiRoot}/add-food?user=${user}&foodName=${foodName}&kcal=${kcal}&protein=${protein}`,
 						);
 					}
 
 					fetch(
-						`http://localhost:9999/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${amount}`,
+						`${apiRoot}/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${amount}`,
 					)
 						.then((res) => res.json())
 						.then((newMeal) => {
