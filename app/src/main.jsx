@@ -2,15 +2,18 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import App from "./App.jsx";
+import App, { appLoader } from "./App.jsx";
 import DateSelectPage, { dateSelectAction } from "./date_selection_page.jsx";
 import MealsPage, { mealsPageAction, mealsPageLoader } from "./meals_page.jsx";
 import FoodsPage, { foodsPageAction, foodsPageLoader } from "./foods_page.jsx";
 import StatsPage, { statsPageLoader } from "./stats_page.jsx";
+import { signUpInAction } from "./SignUpInForm.jsx";
 
 const router = createBrowserRouter([
 	{
 		path: "/",
+		loader: appLoader,
+		action: signUpInAction,
 		element: <App />,
 		children: [
 			{

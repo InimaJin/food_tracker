@@ -73,6 +73,14 @@ header.app-main-header {
 	outline: none;
 }
 
+.underlined-btn {
+	background: none;
+	border: none;
+	color: black;
+	text-decoration: underline;
+	font-weight: 600;
+}
+
 .highlight-btn {
 	background: black;
 	color: white;
@@ -92,22 +100,6 @@ header.app-main-header {
 	font-size: 1.5rem;
 }
 
-.form-btn-wrapper {
-	display: flex;
-	justify-content: space-between;
-	align-items: stretch;
-
-	button {
-		font-size: 1.2rem;
-		border: none;
-	}
-
-	button:not(.highlight-btn) {
-		background: none;
-		color: black;
-	}
-}
-
 dialog {
 	position: absolute;
 	top: 50%;
@@ -117,23 +109,57 @@ dialog {
 	width: 90%;
 	overflow: visible;
 	border: 2px solid black;
-
-	form {
-		display: flex;
-		flex-direction: column;
-		align-items: stretch;
-		gap: 16px;
-
-		.dialog-input-wrapper {
-			position: relative;
-			display: flex;
-			flex-direction: column;
-		}
-	}
 }
 
 ::backdrop {
 	backdrop-filter: blur(4px);
+}
+.standard-form {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 16px;
+
+	.form-input-wrapper {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.form-btn-wrapper {
+		display: flex;
+		justify-content: space-between;
+		align-items: stretch;
+
+		button {
+			font-size: 1.2rem;
+			border: none;
+		}
+
+		button:not(.highlight-btn) {
+			background: none;
+			color: black;
+		}
+	}
+}
+
+.login-form {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 80%;
+	border: 2px solid black;
+	padding: 32px;
+
+	.login-btn {
+		flex: 1;
+	}
+
+	span {
+		display: flex;
+		justify-content: space-between;
+	}
 }
 
 .meals-window {

@@ -28,12 +28,13 @@ function EditFoodDialog({ ref, food, setEditFood, onSubmit }) {
 	return (
 		<dialog ref={ref} closedby="any" onClose={() => setEditFood({})}>
 			<Form
+				className="standard-form"
 				method="post"
 				autoComplete="off"
 				onSubmit={() => onSubmit(kcalInput, proteinInput)}
 			>
 				<h2>{name}</h2>
-				<div className="dialog-input-wrapper">
+				<div className="form-input-wrapper">
 					<label htmlFor="kcal">Kcal/ 100g</label>
 					<input
 						className="underlined-input"
@@ -44,7 +45,7 @@ function EditFoodDialog({ ref, food, setEditFood, onSubmit }) {
 						onChange={(e) => setKcalInput(e.target.value)}
 					/>
 				</div>
-				<div className="dialog-input-wrapper">
+				<div className="form-input-wrapper">
 					<label htmlFor="protein">protein/ 100g</label>
 					<input
 						className="underlined-input"

@@ -210,11 +210,12 @@ function AddMealDialog({
 		<dialog closedby="any" ref={dialogRef}>
 			<h2>Add meal</h2>
 			<Form
+				className="standard-form"
 				method="post"
 				autoComplete="off"
 				onSubmit={() => onSubmit({ foodName, kcal, protein, amount })}
 			>
-				<div className="dialog-input-wrapper">
+				<div className="form-input-wrapper">
 					<label htmlFor="food">Food</label>
 					<input
 						className="underlined-input"
@@ -265,7 +266,7 @@ function AddMealDialog({
 						</ul>
 					)}
 				</div>
-				<div className="dialog-input-wrapper">
+				<div className="form-input-wrapper">
 					<label htmlFor="kcal">Kcal/ 100g</label>
 					<input
 						className="underlined-input"
@@ -277,7 +278,7 @@ function AddMealDialog({
 						disabled={lockInputs}
 					/>
 				</div>
-				<div className="dialog-input-wrapper">
+				<div className="form-input-wrapper">
 					<label htmlFor="protein">Protein/ 100g</label>
 					<input
 						className="underlined-input"
@@ -289,7 +290,7 @@ function AddMealDialog({
 						disabled={lockInputs}
 					/>
 				</div>
-				<div className="dialog-input-wrapper">
+				<div className="form-input-wrapper">
 					<label htmlFor="amount">Amount in grams</label>
 					<input
 						className="underlined-input"
