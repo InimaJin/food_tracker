@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { Form } from "react-router-dom";
+import { apiRoot } from "./constants.json";
 
 export async function signUpInAction({ request }) {
 	const formData = await request.formData();
-	const email = formData.get("email");
+	const username = formData.get("username");
 	const password = formData.get("password");
 	const signUp = formData.get("confirm-password") !== null;
 
-	//TODO: API request
+	//TODO: Response handling and redirect.
+	await fetch(
+		`${apiRoot}/sign-up-in?username=${username}&password=${password}&signUp=${signUp}`,
+	);
 }
 
 function SignUpOrInText({ signUp, setSignUp }) {
@@ -50,8 +54,8 @@ export default function SignUpInForm() {
 		>
 			<h2>{signUp ? "Sign up" : "Sign in"}</h2>
 			<div className="form-input-wrapper">
-				<label htmlFor="email">Email</label>
-				<input type="email" name="email" className="underlined-input" />
+				<label htmlFor="username">Username</label>
+				<input type="text" name="username" className="underlined-input" />
 			</div>
 			<div className="form-input-wrapper">
 				<label htmlFor="password">Password</label>

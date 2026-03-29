@@ -12,7 +12,6 @@ export async function mealsPageLoader({ request }) {
 		return redirect("/");
 	}
 
-	//TODO: Login prompt at start of app for initializing user email.
 	const user = localStorage.getItem("user");
 	const meals = await fetch(`${apiRoot}/meals?user=${user}&date=${date}`).then(
 		(res) => res.json(),

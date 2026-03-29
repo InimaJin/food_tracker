@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import postgres from "postgres";
+import bcrypt from "bcrypt";
 
 const app = express();
 app.use(cors());
@@ -12,6 +13,54 @@ const sql = postgres({
 });
 
 const apiRoot = "/api";
+
+/**
+ * Handles sign-up and sign-in.
+ * Request query must contain: username, password.
+ * Optional parameter: signUp  -  true, if a new user should be created. Otherwise, sign in using the given username/password.
+ * Currently returns nothing meaningful.
+ */
+app.get(`${apiRoot}/sign-up-in`, async (req, res) => {
+	const { signUp, username, password } = req.query;
+
+	let usernameTaken = false;
+
+	if (signUp === "true") {
+		const hash = bcrypt.hashSync(password, 10);
+		await sql.begin(async (sql) => {
+			await sql
+				.savepoint(async (sql) => {
+					await sql`
+						INSERT INTO users (name, password) VALUES (${username}, ${hash})
+					`;
+				})
+				.catch((err) => {
+					usernameTaken = true;
+				});
+		});
+	}
+
+	if (usernameTaken) {
+		res.status(400).send("username taken");
+		return;
+	}
+
+	const arr = await sql`
+		SELECT password AS stored_hash FROM users WHERE name=${username}
+	`;
+	if (arr.length === 0) {
+		res.status(400).send("No such user");
+		return;
+	}
+
+	const { stored_hash: storedHash } = arr[0];
+	const passwordCorrect =
+		signUp === "true" || bcrypt.compareSync(password, storedHash);
+
+	//TODO: Return token (or not).
+
+	res.send(passwordCorrect);
+});
 
 /**
  * Retrieve a list of all foods owned by the given user.

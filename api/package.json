@@ -6,6 +6,7 @@
 	"type": "module",
 	"main": "main.js",
 	"dependencies": {
+		"bcrypt": "^6.0.0",
 		"cors": "^2.8.6",
 		"express": "^5.2.1",
 		"postgres": "^3.4.8"
