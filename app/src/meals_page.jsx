@@ -406,7 +406,7 @@ export default function MealsPage() {
 	return (
 		<div className="current-window scroll-window meals-window">
 			<header>
-				<h1>Meals for {date}</h1>
+				<h1>{date}</h1>
 				<div>
 					<span>Total kcal: {totalKcal}</span>
 					<span>Total protein: {totalProtein}g</span>

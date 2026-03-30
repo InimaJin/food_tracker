@@ -89,24 +89,6 @@ export default function FoodsPage() {
 		return f1.name.localeCompare(f2.name);
 	});
 	const [editFood, setEditFood] = useState({});
-	const foodsList = foods.map((food) => {
-		const { food_id: foodId, name, kcal, protein } = food;
-		return (
-			<div
-				key={foodId}
-				className="food-card"
-				onClick={() => {
-					setEditFood(editFood.name ? {} : food);
-				}}
-			>
-				<h2>{name}</h2>
-				<ul>
-					<li>{kcal}kcal/ 100g</li>
-					<li>{protein !== 0 ? `${protein}g protein/ 100g` : "no protein"}</li>
-				</ul>
-			</div>
-		);
-	});
 
 	useEffect(() => {
 		if (editFood.name) {
@@ -136,6 +118,25 @@ export default function FoodsPage() {
 				setEditFood({});
 			});
 	}
+
+	const foodsList = foods.map((food) => {
+		const { food_id: foodId, name, kcal, protein } = food;
+		return (
+			<div
+				key={foodId}
+				className="food-card"
+				onClick={() => {
+					setEditFood(editFood.name ? {} : food);
+				}}
+			>
+				<h2>{name}</h2>
+				<ul>
+					<li>{kcal}kcal/ 100g</li>
+					<li>{protein !== 0 ? `${protein}g protein/ 100g` : "no protein"}</li>
+				</ul>
+			</div>
+		);
+	});
 
 	return (
 		<div className="current-window scroll-window foods-window">
