@@ -12,13 +12,20 @@ export async function mealsPageLoader({ request }) {
 		return redirect("/");
 	}
 
-	const user = localStorage.getItem("user");
-	const meals = await fetch(`${apiRoot}/meals?user=${user}&date=${date}`).then(
-		(res) => res.json(),
-	);
+	const token = localStorage.getItem("token");
+	if (!token) {
+		return redirect("/");
+	}
+
+	const meals = await fetch(`${apiRoot}/meals?date=${date}`, {
+		method: "GET",
+		headers: {
+			Authorization: token,
+		},
+	}).then((res) => res.json());
 
 	return {
-		user,
+		token,
 		date,
 		meals,
 	};
@@ -91,7 +98,7 @@ function EditMealForm({ cancelEdit, onMealEdit, onMealDelete }) {
  * A single meal within the meals overview.
  */
 function Meal({
-	user,
+	token,
 	date,
 	mealObj,
 	mealsState,
@@ -101,7 +108,7 @@ function Meal({
 }) {
 	const {
 		food_id: foodId,
-		name,
+		name: foodName,
 		amount,
 		kcal,
 		protein,
@@ -112,7 +119,7 @@ function Meal({
 	return (
 		<>
 			<div className="meal-top">
-				<h2>{name}</h2>
+				<h2>{foodName}</h2>
 				<div>
 					<h2>{amount}g</h2>
 					<button
@@ -129,9 +136,19 @@ function Meal({
 					mealId={foodId}
 					cancelEdit={() => setEditingMealId(null)}
 					onMealEdit={(newAmount) => {
-						fetch(
-							`${apiRoot}/add-meal?user=${user}&date=${date}&foodName=${name}&amount=${newAmount}&overwrite=true`,
-						)
+						fetch(`${apiRoot}/add-meal`, {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: token,
+							},
+							body: JSON.stringify({
+								date,
+								foodName,
+								amount: newAmount,
+								overwrite: true,
+							}),
+						})
 							.then((res) => res.json())
 							.then((newMeal) => {
 								const nextMeals = mealsState.filter(
@@ -142,9 +159,17 @@ function Meal({
 							});
 					}}
 					onMealDelete={() => {
-						fetch(
-							`${apiRoot}/del-meal?user=${user}&date=${date}&foodId=${foodId}`,
-						).then(() => {
+						fetch(`${apiRoot}/del-meal`, {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: token,
+							},
+							body: JSON.stringify({
+								date,
+								foodId,
+							}),
+						}).then(() => {
 							const nextMeals = mealsState.filter(
 								(meal) => meal.food_id !== foodId,
 							);
@@ -319,7 +344,7 @@ function AddMealDialog({
  * An overview of the meals consumed on a particular date.
  */
 export default function MealsPage() {
-	const { user, date, meals: mealsArr } = useLoaderData();
+	const { token, date, meals: mealsArr } = useLoaderData();
 
 	const [mealsState, setMealsState] = useState(mealsArr);
 
@@ -341,7 +366,7 @@ export default function MealsPage() {
 		return (
 			<li key={meal.food_id}>
 				<Meal
-					user={user}
+					token={token}
 					date={date}
 					mealObj={meal}
 					mealsState={mealsState}
@@ -358,7 +383,12 @@ export default function MealsPage() {
 	const [matchingFoods, setMatchingFoods] = useState([]);
 	function openAddMealDialog() {
 		dialogRef.current.showModal();
-		fetch(`${apiRoot}/foods?user=${user}`)
+		fetch(`${apiRoot}/foods`, {
+			method: "GET",
+			headers: {
+				Authorization: token,
+			},
+		})
 			.then((res) => res.json())
 			.then((foodsArr) => {
 				setAllFoods(foodsArr);
@@ -390,14 +420,32 @@ export default function MealsPage() {
 				onSubmit={async ({ foodName, kcal, protein, amount }) => {
 					const matchingFood = allFoods.find((food) => food.name === foodName);
 					if (!matchingFood) {
-						await fetch(
-							`${apiRoot}/add-food?user=${user}&foodName=${foodName}&kcal=${kcal}&protein=${protein}`,
-						);
+						await fetch(`${apiRoot}/add-food`, {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: token,
+							},
+							body: JSON.stringify({
+								foodName,
+								kcal,
+								protein,
+							}),
+						});
 					}
 
-					fetch(
-						`${apiRoot}/add-meal?user=${user}&date=${date}&foodName=${foodName}&amount=${amount}`,
-					)
+					fetch(`${apiRoot}/add-meal`, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: token,
+						},
+						body: JSON.stringify({
+							date,
+							foodName,
+							amount,
+						}),
+					})
 						.then((res) => res.json())
 						.then((newMeal) => {
 							const nextMeals = mealsState.filter(

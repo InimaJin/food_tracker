@@ -2,16 +2,16 @@ import { Link, Outlet, redirect, useLoaderData } from "react-router-dom";
 import SignUpInForm from "./SignUpInForm";
 
 export function appLoader() {
-	const user = localStorage.getItem("user");
-	return user;
+	const token = localStorage.getItem("token");
+	return token;
 }
 
 /**
  * Root component. Renders a child component and the header at the bottom of tha page.
  */
 export default function App() {
-	const user = useLoaderData();
-	if (!user) {
+	const token = useLoaderData();
+	if (!token) {
 		return <SignUpInForm />;
 	}
 

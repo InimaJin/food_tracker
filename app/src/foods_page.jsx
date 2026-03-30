@@ -3,15 +3,18 @@ import { redirect, useLoaderData, Form } from "react-router-dom";
 import { apiRoot } from "./constants.json";
 
 export async function foodsPageLoader() {
-	const user = localStorage.getItem("user");
-	if (!user) {
+	const token = localStorage.getItem("token");
+	if (!token) {
 		return redirect("/");
 	}
-	const foods = await fetch(`${apiRoot}/foods?user=${user}`).then((res) =>
-		res.json(),
-	);
+	const foods = await fetch(`${apiRoot}/foods`, {
+		method: "GET",
+		headers: {
+			Authorization: token,
+		},
+	}).then((res) => res.json());
 
-	return { user, foods };
+	return { token, foods };
 }
 
 export function foodsPageAction() {}
@@ -77,7 +80,7 @@ function EditFoodDialog({ ref, food, setEditFood, onSubmit }) {
  * Overview of a user's foods.
  */
 export default function FoodsPage() {
-	const { user, foods: foodsArr } = useLoaderData();
+	const { token, foods: foodsArr } = useLoaderData();
 	const dialogRef = useRef(null);
 
 	const [foodsState, setFoodsState] = useState(foodsArr);
@@ -112,9 +115,18 @@ export default function FoodsPage() {
 	}, [editFood]);
 
 	function onFoodEdit(newKcal, newProtein) {
-		fetch(
-			`${apiRoot}/edit-food?user=${user}&foodId=${editFood.food_id}&kcal=${newKcal}&protein=${newProtein}`,
-		)
+		fetch(`${apiRoot}/edit-food`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: token,
+			},
+			body: JSON.stringify({
+				foodId: editFood.food_id,
+				kcal: newKcal,
+				protein: newProtein,
+			}),
+		})
 			.then((res) => res.json())
 			.then((updatedFood) => {
 				let nextFoods = foods.filter(

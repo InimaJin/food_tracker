@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Form } from "react-router-dom";
+import { Form, redirect } from "react-router-dom";
 import { apiRoot } from "./constants.json";
 
 export async function signUpInAction({ request }) {
@@ -8,10 +8,23 @@ export async function signUpInAction({ request }) {
 	const password = formData.get("password");
 	const signUp = formData.get("confirm-password") !== null;
 
-	//TODO: Response handling and redirect.
-	await fetch(
-		`${apiRoot}/sign-up-in?username=${username}&password=${password}&signUp=${signUp}`,
-	);
+	//TODO: Error handling.
+	const token = await fetch(`${apiRoot}/sign-up-in`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			username,
+			password,
+			signUp,
+		}),
+	})
+		.then((res) => res.json())
+		.then((json) => json.token);
+
+	localStorage.setItem("token", token);
+	return redirect("/");
 }
 
 function SignUpOrInText({ signUp, setSignUp }) {
@@ -33,6 +46,7 @@ function SignUpOrInText({ signUp, setSignUp }) {
 
 /**
  * A form for signing up/ signing in.
+ * Rendered by the App component when no token is available.
  */
 export default function SignUpInForm() {
 	const [signUp, setSignUp] = useState(false);

@@ -1,10 +1,13 @@
-import express from "express";
+import express, { request } from "express";
 import cors from "cors";
 import postgres from "postgres";
 import bcrypt from "bcrypt";
+import jsonwebtoken from "jsonwebtoken";
 
 const app = express();
 app.use(cors());
+app.use(express.json());
+
 const sql = postgres({
 	host: "localhost",
 	port: 5432,
@@ -13,19 +16,35 @@ const sql = postgres({
 });
 
 const apiRoot = "/api";
+const JWT_SECRET = process.env.JWT_SECRET;
+
+/**
+ * Validates user authorization by verifying the web token in the 'Authorization' header.
+ */
+function auth(req, res, next) {
+	const token = req.get("Authorization");
+
+	try {
+		const decoded = jsonwebtoken.verify(token, JWT_SECRET);
+		req.username = decoded.username;
+		next();
+	} catch (e) {
+		res.status(400).send("auth fail");
+	}
+}
 
 /**
  * Handles sign-up and sign-in.
- * Request query must contain: username, password.
- * Optional parameter: signUp  -  true, if a new user should be created. Otherwise, sign in using the given username/password.
- * Currently returns nothing meaningful.
+ * Request body must contain: username, password.
+ * Optional body parameter: signUp (bool) -  true, if a new user should be created. Otherwise, sign in using the given username/password.
+ * Returns a JWT if successfully logged in.
  */
-app.get(`${apiRoot}/sign-up-in`, async (req, res) => {
-	const { signUp, username, password } = req.query;
+app.post(`${apiRoot}/sign-up-in`, async (req, res) => {
+	const { signUp, username, password } = req.body;
 
 	let usernameTaken = false;
 
-	if (signUp === "true") {
+	if (signUp) {
 		const hash = bcrypt.hashSync(password, 10);
 		await sql.begin(async (sql) => {
 			await sql
@@ -41,56 +60,61 @@ app.get(`${apiRoot}/sign-up-in`, async (req, res) => {
 	}
 
 	if (usernameTaken) {
-		res.status(400).send("username taken");
-		return;
+		return res.status(400).send("username taken");
 	}
 
 	const arr = await sql`
 		SELECT password AS stored_hash FROM users WHERE name=${username}
 	`;
 	if (arr.length === 0) {
-		res.status(400).send("No such user");
-		return;
+		return res.status(400).send("No such user");
 	}
 
 	const { stored_hash: storedHash } = arr[0];
 	const passwordCorrect =
 		signUp === "true" || bcrypt.compareSync(password, storedHash);
+	if (!passwordCorrect) {
+		return res.status(400).send("Invalid credentials");
+	}
 
-	//TODO: Return token (or not).
-
-	res.send(passwordCorrect);
+	const token = jsonwebtoken.sign({ username }, JWT_SECRET, {
+		expiresIn: "7d",
+	});
+	res.json({ token });
 });
 
+app.use(auth);
+
 /**
- * Retrieve a list of all foods owned by the given user.
- * Request query must contain: user.
+ * Retrieve a list of all foods owned by the user.
  * Each food in the array looks like this: { food_id, name, kcal (per 100g), protein (per 100g) }.
  */
 app.get(`${apiRoot}/foods`, async (req, res) => {
-	const { user } = req.query;
-	if (!user) {
+	const username = req.username;
+
+	if (!username) {
 		res.status(400).send("No user specified.");
 	}
 
 	const foods = await sql`
-		SELECT id AS food_id, name, kcal, protein FROM foods WHERE owner=${user}
+		SELECT id AS food_id, name, kcal, protein FROM foods WHERE owner=${username}
 	`;
 
 	res.json(foods);
 });
 
 /**
- * Add a food for a given user.
- * Request query must contain: user, foodName, kcal, protein.
+ * Add a new food.
+ * Request body must contain: foodName, kcal, protein.
  * The response is the newly added food: { food_id, name, kcal, protein }.
  */
-app.get(`${apiRoot}/add-food`, async (req, res) => {
-	const { user, foodName, kcal, protein } = req.query;
+app.post(`${apiRoot}/add-food`, async (req, res) => {
+	const username = req.username;
+	const { foodName, kcal, protein } = req.body;
 
 	const newFood = await sql`
 		INSERT INTO foods (name, owner, kcal, protein) 
-		VALUES (${foodName}, ${user}, ${kcal}, ${protein})
+		VALUES (${foodName}, ${username}, ${kcal}, ${protein})
 		RETURNING id AS food_id, name, kcal, protein;
 	`;
 
@@ -98,18 +122,19 @@ app.get(`${apiRoot}/add-food`, async (req, res) => {
 });
 
 /**
- * Update a food for a given user.
- * Request query must contain: user, foodId, kcal, protein.
+ * Update an existing food.
+ * Request body must contain: foodId, kcal, protein.
  * kcal and protein are the new values for the food associated with foodId.
  * Returns the updated food, if it exists.
  */
-app.get(`${apiRoot}/edit-food`, async (req, res) => {
+app.post(`${apiRoot}/edit-food`, async (req, res) => {
+	const username = req.username;
 	//TODO: Optional parameter for deleting a food.
-	const { user, foodId, kcal, protein } = req.query;
+	const { foodId, kcal, protein } = req.body;
 
 	const updatedFood = (
 		await sql`
-		UPDATE foods SET kcal=${kcal}, protein=${protein} WHERE id=${foodId} AND owner=${user} RETURNING name, id AS food_id, owner, kcal, protein
+		UPDATE foods SET kcal=${kcal}, protein=${protein} WHERE id=${foodId} AND owner=${username} RETURNING name, id AS food_id, owner, kcal, protein
 	`
 	)[0];
 
@@ -117,44 +142,44 @@ app.get(`${apiRoot}/edit-food`, async (req, res) => {
 });
 
 /**
- * Retrieve a list of meals for a given user and date.
- * Request query must contain: user, date.
+ * Retrieve a list of meals for a given date.
+ * Request query must contain: date.
  * Optional query parameter: endDate. If specified, all meals between <date> and <endDate> inclusive are returned.
- * Each meal entry in the array looks like this: { food_id, name, amount [g], kcal (per 100g), protein [g / 100g], date}.
+ * Response is an array of meals: [ { food_id, name, amount [g], kcal (per 100g), protein [g / 100g], date} ].
  */
 app.get(`${apiRoot}/meals`, async (req, res) => {
-	console.log(req);
-	const { user, date, endDate } = req.query;
+	const username = req.username;
+	const { date, endDate } = req.query;
 
-	if (!user || !date) {
+	if (!username || !date) {
 		res.status(400).send("Undefined parameter!");
 		return;
 	}
 
 	const meals = await sql`
 		SELECT food_id, name, amount, kcal, protein, date
-        FROM foods, meals WHERE owner=${user} AND id=food_id AND date BETWEEN ${date} AND ${endDate ? endDate : date};
+        FROM foods, meals WHERE owner=${username} AND id=food_id AND date BETWEEN ${date} AND ${endDate ? endDate : date};
 	`;
 	res.json(meals);
 });
 
 /**
- * Add a meal to the database. The food must already exist for the specified user.
- * Request query must contain: user, date, foodName, amount.
- * Optional query param: overwrite - if true and the given meal already exists,
- * the existing meal's amount is overwritten with the new amount.
- * If false or not specified and the given meal already exists, the existing meal's amount is
- * incremented by the given amount value.
+ * Add a meal to the database. The food must already exist for the user.
+ * Request body must contain: date, foodName, amount.
+ * Optional body param: overwrite (bool) - if true and the given meal already exists,
+ * the existing meal's amount is overwritten with the new amount. If false or not specified and
+ * the given meal already exists, the existing meal's amount is incremented by the given amount value.
  * Response is an object for the meal if the food exists: { food_id, name, amount, kcal, protein }.
  */
-app.get(`${apiRoot}/add-meal`, async (req, res) => {
-	const { user, date, foodName, amount, overwrite } = req.query;
+app.post(`${apiRoot}/add-meal`, async (req, res) => {
+	const username = req.username;
+	const { date, foodName, amount, overwrite } = req.body;
 
 	const idArr = await sql`
-		SELECT id FROM foods WHERE name=${foodName} AND owner=${user} 
+		SELECT id FROM foods WHERE name=${foodName} AND owner=${username} 
 	`;
 	if (idArr.length === 0) {
-		res.status(400).send("No such food: " + foodName);
+		res.status(400).send("no such food");
 		return;
 	}
 	const foodId = idArr[0].id;
@@ -168,7 +193,7 @@ app.get(`${apiRoot}/add-meal`, async (req, res) => {
 			`,
 			)
 			.catch((err) => {
-				const baseVal = overwrite === "true" ? sql(0) : sql("amount");
+				const baseVal = overwrite ? sql(0) : sql("amount");
 				//If the desired food already has a record for the given day, the above fails due to unique key violation.
 				return sql`
 					UPDATE meals SET amount = ${baseVal} + ${amount}
@@ -179,22 +204,23 @@ app.get(`${apiRoot}/add-meal`, async (req, res) => {
 
 	const addedMeal = await sql`
 		SELECT food_id, name, amount, kcal, protein
-        FROM foods, meals WHERE food_id=${foodId} AND owner=${user} AND id=food_id AND date=${date};
+        FROM foods, meals WHERE food_id=${foodId} AND owner=${username} AND id=food_id AND date=${date};
 	`;
 	res.json(addedMeal[0]);
 });
 
 /**
  * Delete a meal for given day.
- * Request query must contain: user, date, foodId.
- * If no such meal exists, no response is issued. Otherwise, the response is
+ * Request body must contain: date, foodId.
+ * If no such meal exists, the response is empty. Otherwise, the response is
  * the food object the meal was associated with: { id, name, kcal, owner, protein }.
  */
-app.get(`${apiRoot}/del-meal`, async (req, res) => {
-	const { user, date, foodId } = req.query;
+app.post(`${apiRoot}/del-meal`, async (req, res) => {
+	const username = req.username;
+	const { date, foodId } = req.body;
 	const delArr = await sql`
 		DELETE FROM meals WHERE food_id = ${foodId} AND date = ${date}
-		AND EXISTS (SELECT 1 FROM foods WHERE id = meals.food_id AND owner = ${user});
+		AND EXISTS (SELECT 1 FROM foods WHERE id = meals.food_id AND owner = ${username});
 	`;
 
 	//If a meal actually was deleted, respond with the food data.
@@ -202,11 +228,13 @@ app.get(`${apiRoot}/del-meal`, async (req, res) => {
 		const food = (
 			await sql`
 			SELECT id AS food_id, name, owner, kcal, protein FROM foods 
-			WHERE id=${foodId} AND owner=${user};
+			WHERE id=${foodId} AND owner=${username};
 		`
 		)[0];
-		res.json(food);
+		return res.json(food);
 	}
+
+	res.send();
 });
 
 const port = 58327;

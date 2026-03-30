@@ -125,21 +125,21 @@ dialog {
 		display: flex;
 		flex-direction: column;
 	}
+}
 
-	.form-btn-wrapper {
-		display: flex;
-		justify-content: space-between;
-		align-items: stretch;
+.form-btn-wrapper {
+	display: flex;
+	justify-content: space-between;
+	align-items: stretch;
 
-		button {
-			font-size: 1.2rem;
-			border: none;
-		}
+	button {
+		font-size: 1.2rem;
+		border: none;
+	}
 
-		button:not(.highlight-btn) {
-			background: none;
-			color: black;
-		}
+	button:not(.highlight-btn) {
+		background: none;
+		color: black;
 	}
 }
 
@@ -302,6 +302,7 @@ dialog {
 	.foods-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, 160px);
+		grid-template-rows: repeat(auto-fill, 160px);
 		justify-content: space-between;
 		gap: 24px;
 		height: 100%;

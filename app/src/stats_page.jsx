@@ -1,15 +1,18 @@
 import * as Plot from "@observablehq/plot";
 import { useEffect, useRef, useState } from "react";
-import { useLoaderData } from "react-router-dom";
+import { redirect, useLoaderData } from "react-router-dom";
 import { apiRoot } from "./constants.json";
 
 export function statsPageLoader() {
-	const user = localStorage.getItem("user");
-	return user;
+	const token = localStorage.getItem("token");
+	if (!token) {
+		return redirect("/");
+	}
+	return token;
 }
 
 export default function StatsPage() {
-	const user = useLoaderData();
+	const token = useLoaderData();
 
 	const [data, setData] = useState();
 	const [averages, setAverages] = useState({});
@@ -33,7 +36,12 @@ export default function StatsPage() {
 	);
 
 	function loadData() {
-		fetch(`${apiRoot}/meals?user=${user}&date=${startDate}&endDate=${endDate}`)
+		fetch(`${apiRoot}/meals?date=${startDate}&endDate=${endDate}`, {
+			method: "GET",
+			headers: {
+				Authorization: token,
+			},
+		})
 			.then((res) => res.json())
 			.then((json) => {
 				let nextData = json.reduce((map, meal) => {
