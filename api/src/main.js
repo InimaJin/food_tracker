@@ -37,12 +37,12 @@ function auth(req, res, next) {
  * Handles sign-up and sign-in.
  * Request body must contain: username, password.
  * Optional body parameter: signUp (bool) -  true, if a new user should be created. Otherwise, sign in using the given username/password.
- * Returns a JWT if successfully logged in.
+ * Responds with a JWT if successfully logged in. Otherwise, responds with an error message.
  */
 app.post(`${apiRoot}/sign-up-in`, async (req, res) => {
 	const { signUp, username, password } = req.body;
 
-	if (!username || !password) {
+	if (!(username && password)) {
 		return res.status(400).json({ error: "Missing parameters." });
 	}
 
@@ -96,10 +96,6 @@ app.use(auth);
 app.get(`${apiRoot}/foods`, async (req, res) => {
 	const username = req.username;
 
-	if (!username) {
-		res.status(400).send("No user specified.");
-	}
-
 	const foods = await sql`
 		SELECT id AS food_id, name, kcal, protein FROM foods WHERE owner=${username}
 	`;
@@ -115,6 +111,9 @@ app.get(`${apiRoot}/foods`, async (req, res) => {
 app.post(`${apiRoot}/add-food`, async (req, res) => {
 	const username = req.username;
 	const { foodName, kcal, protein } = req.body;
+	if (!(foodName && kcal && protein)) {
+		return res.status(400).json({ error: "Missing parameters." });
+	}
 
 	const newFood = await sql`
 		INSERT INTO foods (name, owner, kcal, protein) 
@@ -135,6 +134,9 @@ app.post(`${apiRoot}/edit-food`, async (req, res) => {
 	const username = req.username;
 	//TODO: Optional parameter for deleting a food.
 	const { foodId, kcal, protein } = req.body;
+	if (!(foodId && kcal && protein)) {
+		return res.status(400).json({ error: "Missing parameters." });
+	}
 
 	const updatedFood = (
 		await sql`
@@ -155,9 +157,8 @@ app.get(`${apiRoot}/meals`, async (req, res) => {
 	const username = req.username;
 	const { date, endDate } = req.query;
 
-	if (!username || !date) {
-		res.status(400).send("Undefined parameter!");
-		return;
+	if (!date) {
+		return res.status(400).json({ error: "Missing parameters." });
 	}
 
 	const meals = await sql`
@@ -178,6 +179,9 @@ app.get(`${apiRoot}/meals`, async (req, res) => {
 app.post(`${apiRoot}/add-meal`, async (req, res) => {
 	const username = req.username;
 	const { date, foodName, amount, overwrite } = req.body;
+	if (!(date && foodName && amount)) {
+		return res.status(400).json({ error: "Missing parameters." });
+	}
 
 	const idArr = await sql`
 		SELECT id FROM foods WHERE name=${foodName} AND owner=${username} 
@@ -222,6 +226,10 @@ app.post(`${apiRoot}/add-meal`, async (req, res) => {
 app.post(`${apiRoot}/del-meal`, async (req, res) => {
 	const username = req.username;
 	const { date, foodId } = req.body;
+	if (!(date && foodId)) {
+		return res.status(400).json({ error: "Missing parameters." });
+	}
+
 	const delArr = await sql`
 		DELETE FROM meals WHERE food_id = ${foodId} AND date = ${date}
 		AND EXISTS (SELECT 1 FROM foods WHERE id = meals.food_id AND owner = ${username});
