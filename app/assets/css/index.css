@@ -164,6 +164,10 @@ dialog {
 	}
 }
 
+.form-err-msg {
+	color: red;
+}
+
 .meals-window {
 	position: relative;
 
@@ -307,10 +311,10 @@ dialog {
 .foods-window {
 	.foods-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, 130px);
+		grid-template-columns: repeat(auto-fill, 160px);
 		grid-template-rows: repeat(auto-fill, 160px);
 		justify-content: space-between;
-		gap: 32px;
+		gap: 24px;
 		height: 100%;
 
 		.food-card {

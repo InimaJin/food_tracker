@@ -1,4 +1,4 @@
-import { Link, Outlet, redirect, useLoaderData } from "react-router-dom";
+import { Link, Outlet, useLoaderData } from "react-router-dom";
 import SignUpInForm from "./SignUpInForm";
 
 export function appLoader() {

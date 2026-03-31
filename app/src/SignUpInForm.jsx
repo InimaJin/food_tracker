@@ -1,33 +1,10 @@
 import { useState } from "react";
-import { Form, redirect } from "react-router-dom";
+import { Form, useNavigate } from "react-router-dom";
 import { apiRoot } from "./constants.json";
 
-export async function signUpInAction({ request }) {
-	const formData = await request.formData();
-	const username = formData.get("username");
-	const password = formData.get("password");
-	const signUp = formData.get("confirm-password") !== null;
+export async function signUpInAction() {}
 
-	//TODO: Error handling.
-	const token = await fetch(`${apiRoot}/sign-up-in`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({
-			username,
-			password,
-			signUp,
-		}),
-	})
-		.then((res) => res.json())
-		.then((json) => json.token);
-
-	localStorage.setItem("token", token);
-	return redirect("/");
-}
-
-function SignUpOrInText({ signUp, setSignUp }) {
+function SignUpOrInText({ signUp, setSignUp, clearInputs }) {
 	const text = signUp ? "Already have an account?" : "Don't have an account?";
 	const buttonText = signUp ? "Sign in" : "Sign up";
 	return (
@@ -36,7 +13,10 @@ function SignUpOrInText({ signUp, setSignUp }) {
 			<button
 				type="button"
 				className="underlined-btn"
-				onClick={() => setSignUp(!signUp)}
+				onClick={() => {
+					setSignUp(!signUp);
+					clearInputs();
+				}}
 			>
 				{buttonText}
 			</button>
@@ -51,25 +31,63 @@ function SignUpOrInText({ signUp, setSignUp }) {
 export default function SignUpInForm() {
 	const [signUp, setSignUp] = useState(false);
 
+	const navigate = useNavigate();
+
+	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
+
+	const [errMsg, setErrMsg] = useState("");
 
 	return (
 		<Form
 			className="standard-form login-form"
 			method="post"
-			onSubmit={(e) => {
+			onChange={() => setErrMsg("")}
+			onSubmit={() => {
+				//Should not be possible, because submit button is disabled in this case.
 				if (signUp && password !== confirmPassword) {
-					//TODO: Make this nicer and incorporate password length check.
-					alert("Passwords don't match.");
-					e.preventDefault();
+					setErrMsg("Passwords don't match.");
+					return;
 				}
+
+				fetch(`${apiRoot}/sign-up-in`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						username,
+						password,
+						signUp,
+					}),
+				})
+					.then(async (res) => {
+						if (res.ok) {
+							return res.json();
+						} else {
+							const json = await res.json();
+							setErrMsg(json.error);
+						}
+					})
+					.then((json) => {
+						if (json) {
+							localStorage.setItem("token", json.token);
+							navigate("/");
+						}
+					});
 			}}
 		>
 			<h2>{signUp ? "Sign up" : "Sign in"}</h2>
 			<div className="form-input-wrapper">
 				<label htmlFor="username">Username</label>
-				<input type="text" name="username" className="underlined-input" />
+				<input
+					type="text"
+					name="username"
+					className="underlined-input"
+					value={username}
+					onChange={(e) => setUsername(e.target.value)}
+				/>
 			</div>
 			<div className="form-input-wrapper">
 				<label htmlFor="password">Password</label>
@@ -94,9 +112,24 @@ export default function SignUpInForm() {
 				</div>
 			)}
 			<div className="form-btn-wrapper">
-				<button className="login-btn highlight-btn">Go!</button>
+				<button
+					className="login-btn highlight-btn"
+					disabled={!password || (signUp && password !== confirmPassword)}
+				>
+					Go!
+				</button>
 			</div>
-			<SignUpOrInText signUp={signUp} setSignUp={setSignUp} />
+			<SignUpOrInText
+				signUp={signUp}
+				setSignUp={setSignUp}
+				clearInputs={() => {
+					setUsername("");
+					setPassword("");
+					setConfirmPassword("");
+					setErrMsg("");
+				}}
+			/>
+			{errMsg && <span className="form-err-msg">{errMsg}</span>}
 		</Form>
 	);
 }

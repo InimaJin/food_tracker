@@ -60,21 +60,21 @@ app.post(`${apiRoot}/sign-up-in`, async (req, res) => {
 	}
 
 	if (usernameTaken) {
-		return res.status(400).send("username taken");
+		return res.status(400).json({ error: "Username already taken." });
 	}
 
 	const arr = await sql`
 		SELECT password AS stored_hash FROM users WHERE name=${username}
 	`;
 	if (arr.length === 0) {
-		return res.status(400).send("No such user");
+		return res.status(400).json({ error: "No such user." });
 	}
 
 	const { stored_hash: storedHash } = arr[0];
 	const passwordCorrect =
 		signUp === "true" || bcrypt.compareSync(password, storedHash);
 	if (!passwordCorrect) {
-		return res.status(400).send("Invalid credentials");
+		return res.status(400).json({ error: "Invalid credentials." });
 	}
 
 	const token = jsonwebtoken.sign({ username }, JWT_SECRET, {
