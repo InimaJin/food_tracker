@@ -114,7 +114,9 @@ export default function SignUpInForm() {
 			<div className="form-btn-wrapper">
 				<button
 					className="login-btn highlight-btn"
-					disabled={!password || (signUp && password !== confirmPassword)}
+					disabled={
+						!(username && password) || (signUp && password !== confirmPassword)
+					}
 				>
 					Go!
 				</button>

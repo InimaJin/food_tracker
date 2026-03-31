@@ -29,7 +29,7 @@ function auth(req, res, next) {
 		req.username = decoded.username;
 		next();
 	} catch (e) {
-		res.status(400).send("auth fail");
+		res.status(400).json({ error: "auth fail" });
 	}
 }
 
@@ -41,6 +41,10 @@ function auth(req, res, next) {
  */
 app.post(`${apiRoot}/sign-up-in`, async (req, res) => {
 	const { signUp, username, password } = req.body;
+
+	if (!username || !password) {
+		return res.status(400).json({ error: "Missing parameters." });
+	}
 
 	let usernameTaken = false;
 
