@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { redirect, useLoaderData, Form } from "react-router-dom";
 import { apiRoot } from "./constants.json";
+import { DeleteButton } from "./components/DeleteButton";
 
 /**
  * Load all meals for given user and date.
@@ -59,24 +60,7 @@ function EditMealForm({ cancelEdit, onMealEdit, onMealDelete }) {
 				autoFocus
 			/>
 			<div className="form-btn-wrapper">
-				<button
-					className={`del-meal-btn ${deleteMealPending ? "highlight-btn" : ""}`}
-					type="button"
-					onClick={() => {
-						if (deleteMealPending) {
-							onMealDelete();
-						} else {
-							setDeleteMealPending(true);
-							setTimeout(() => setDeleteMealPending(false), 3000);
-						}
-					}}
-				>
-					{deleteMealPending ? (
-						"Click to delete"
-					) : (
-						<i className="bx bx-trash" />
-					)}
-				</button>
+				<DeleteButton onDelete={onMealDelete} />
 				<div className="form-btn-wrapper">
 					<button type="button" onClick={cancelEdit}>
 						Cancel

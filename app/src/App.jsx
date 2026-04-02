@@ -6,6 +6,8 @@ export function appLoader() {
 	return token;
 }
 
+//TODO: Load user token from context
+
 /**
  * Root component. Renders a child component and the header at the bottom of tha page.
  */

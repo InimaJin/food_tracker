@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { redirect, useLoaderData, Form } from "react-router-dom";
 import { apiRoot } from "./constants.json";
+import { DeleteButton } from "./components/DeleteButton";
 
 export async function foodsPageLoader() {
 	const token = localStorage.getItem("token");
@@ -36,7 +37,14 @@ function EditFoodDialog({ ref, food, setEditFood, onSubmit }) {
 				autoComplete="off"
 				onSubmit={() => onSubmit(kcalInput, proteinInput)}
 			>
-				<h2>{name}</h2>
+				<header className="edit-food-header">
+					<h2>{name}</h2>
+					<DeleteButton
+						onDelete={() => {
+							//TODO: API request
+						}}
+					/>
+				</header>
 				<div className="form-input-wrapper">
 					<label htmlFor="kcal">Kcal/ 100g</label>
 					<input

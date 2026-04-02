@@ -37,7 +37,7 @@ header.app-main-header {
 	height: 90%;
 	padding-top: 32px;
 
-	header {
+	> header {
 		font-weight: normal;
 		padding: 0 32px;
 
@@ -95,11 +95,35 @@ header.app-main-header {
 	opacity: 0.3;
 }
 
+button:not(.highlight-btn) {
+	background: transparent;
+	color: black;
+}
+
 .icon-btn {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	font-size: 1.5rem;
+	font-size: inherit;
+}
+
+.del-btn {
+	background: transparent;
+	border: none;
+	font-size: 1.3rem;
+}
+
+.del-btn:not(.highlight-btn) {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	color: red;
+}
+
+.del-btn {
+	background: black;
+	color: white;
+	border-radius: 8px;
 }
 
 dialog {
@@ -137,11 +161,6 @@ dialog {
 	button {
 		font-size: 1.2rem;
 		border: none;
-	}
-
-	button:not(.highlight-btn) {
-		background: none;
-		color: black;
 	}
 }
 
@@ -241,20 +260,6 @@ dialog {
 		.edit-meal-form > .form-btn-wrapper {
 			margin-top: 8px;
 
-			.del-meal-btn:not(.highlight-btn) {
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				color: red;
-			}
-
-			.del-meal-btn .del-confirm {
-				padding: 4px;
-				background: black;
-				color: white;
-				border-radius: 8px;
-			}
-
 			.form-btn-wrapper {
 				flex: 4;
 				justify-content: end;
@@ -328,6 +333,11 @@ dialog {
 				list-style: none;
 			}
 		}
+	}
+
+	.edit-food-header {
+		display: flex;
+		justify-content: space-between;
 	}
 }
 
