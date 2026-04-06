@@ -20,6 +20,8 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 /**
  * Validates user authorization by verifying the web token in the 'Authorization' header.
+ * If authenticated successfully, the user's username is appended to the request object.
+ * Otherwise, an error response is sent.
  */
 function auth(req, res, next) {
 	const token = req.get("Authorization");
@@ -148,6 +150,27 @@ app.post(`${apiRoot}/edit-food`, async (req, res) => {
 });
 
 /**
+ * Deletes a food.
+ * Request body must contain: foodId.
+ * Returns the deleted food, if it existed.
+ */
+app.post(`${apiRoot}/del-food`, async (req, res) => {
+	const username = req.username;
+	const {foodId} = req.body;
+	if (!foodId) {
+		return res.status(400).json({ error: "Missing parameters." });
+	}
+
+	const arr = await sql`
+		DELETE FROM foods WHERE id=${foodId} AND owner=${username} RETURNING id AS food_id
+	`;
+	if (arr.length !== 0) {
+		return res.json(arr[0]);
+	}
+	res.end();
+});
+
+/**
  * Retrieve a list of meals for a given date.
  * Request query must contain: date.
  * Optional query parameter: endDate. If specified, all meals between <date> and <endDate> inclusive are returned.
@@ -246,7 +269,7 @@ app.post(`${apiRoot}/del-meal`, async (req, res) => {
 		return res.json(food);
 	}
 
-	res.send();
+	res.end();
 });
 
 const port = 58327;
