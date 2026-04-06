@@ -39,7 +39,6 @@ export function mealsPageAction() {}
  */
 function EditMealForm({ cancelEdit, onMealEdit, onMealDelete }) {
 	const [newAmount, setNewAmount] = useState("");
-	const [deleteMealPending, setDeleteMealPending] = useState(false);
 
 	return (
 		<Form
@@ -61,18 +60,16 @@ function EditMealForm({ cancelEdit, onMealEdit, onMealDelete }) {
 			/>
 			<div className="form-btn-wrapper">
 				<DeleteButton onDelete={onMealDelete} />
-				<div className="form-btn-wrapper">
-					<button type="button" onClick={cancelEdit}>
-						Cancel
-					</button>
-					<button
-						type="submit"
-						className="highlight-btn"
-						disabled={newAmount.trim() === ""}
-					>
-						Ok
-					</button>
-				</div>
+				<button type="button" onClick={cancelEdit}>
+					Cancel
+				</button>
+				<button
+					type="submit"
+					className="highlight-btn"
+					disabled={newAmount.trim() === ""}
+				>
+					Ok
+				</button>
 			</div>
 		</Form>
 	);

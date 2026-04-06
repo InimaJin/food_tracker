@@ -23,12 +23,11 @@ export function foodsPageAction() {}
 /**
  * A dialog for updating kcal/ protein values of a selected food.
  */
-function EditFoodDialog({ ref, food, setEditFood, onSubmit }) {
+function EditFoodDialog({ ref, food, setEditFood, onSubmit, onFoodDelete }) {
 	const { name, kcal, protein } = food;
 
 	const [kcalInput, setKcalInput] = useState(kcal);
 	const [proteinInput, setProteinInput] = useState(protein);
-	//TODO: Button for deleting food.
 	return (
 		<dialog ref={ref} closedby="any" onClose={() => setEditFood({})}>
 			<Form
@@ -40,9 +39,7 @@ function EditFoodDialog({ ref, food, setEditFood, onSubmit }) {
 				<header className="edit-food-header">
 					<h2>{name}</h2>
 					<DeleteButton
-						onDelete={() => {
-							//TODO: API request
-						}}
+						onDelete={onFoodDelete}
 					/>
 				</header>
 				<div className="form-input-wrapper">
@@ -158,6 +155,24 @@ export default function FoodsPage() {
 				food={editFood}
 				setEditFood={setEditFood}
 				onSubmit={onFoodEdit}
+				onFoodDelete={() => {
+					fetch(`${apiRoot}/del-food`, {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: token,
+						},
+						body: JSON.stringify({
+							foodId: editFood.food_id
+						}),
+					})
+					.then(res => res.json())
+					.then(({food_id: deletedId}) => {
+						const nextFoods = foodsState.filter(food => food.food_id !== deletedId);
+						setFoodsState(nextFoods);
+						setEditFood({});
+					});
+				}}
 			/>
 		</div>
 	);

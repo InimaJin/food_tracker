@@ -2,8 +2,10 @@ import { useState } from "react";
 
 /**
  * A delete button that needs to be clicked twice.
+ * An optional timeout in seconds can be specified during which the delete
+ * operation has to be confirmed.
  */
-export function DeleteButton({ onDelete }) {
+export function DeleteButton({ onDelete, timeout = 3 }) {
 	const [pending, setPending] = useState(false);
 
 	return (
@@ -18,7 +20,7 @@ export function DeleteButton({ onDelete }) {
 					setPending(true);
 					setTimeout(() => {
 						setPending(false);
-					}, 3000);
+					}, timeout * 1000);
 				}
 			}}
 		>
