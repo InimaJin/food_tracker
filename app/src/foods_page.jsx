@@ -38,9 +38,7 @@ function EditFoodDialog({ ref, food, setEditFood, onSubmit, onFoodDelete }) {
 			>
 				<header className="edit-food-header">
 					<h2>{name}</h2>
-					<DeleteButton
-						onDelete={onFoodDelete}
-					/>
+					<DeleteButton onDelete={onFoodDelete} />
 				</header>
 				<div className="form-input-wrapper">
 					<label htmlFor="kcal">Kcal/ 100g</label>
@@ -163,15 +161,17 @@ export default function FoodsPage() {
 							Authorization: token,
 						},
 						body: JSON.stringify({
-							foodId: editFood.food_id
+							foodId: editFood.food_id,
 						}),
 					})
-					.then(res => res.json())
-					.then(({food_id: deletedId}) => {
-						const nextFoods = foodsState.filter(food => food.food_id !== deletedId);
-						setFoodsState(nextFoods);
-						setEditFood({});
-					});
+						.then((res) => res.json())
+						.then(({ food_id: deletedId }) => {
+							const nextFoods = foodsState.filter(
+								(food) => food.food_id !== deletedId,
+							);
+							setFoodsState(nextFoods);
+							setEditFood({});
+						});
 				}}
 			/>
 		</div>

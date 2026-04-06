@@ -156,7 +156,7 @@ app.post(`${apiRoot}/edit-food`, async (req, res) => {
  */
 app.post(`${apiRoot}/del-food`, async (req, res) => {
 	const username = req.username;
-	const {foodId} = req.body;
+	const { foodId } = req.body;
 	if (!foodId) {
 		return res.status(400).json({ error: "Missing parameters." });
 	}
