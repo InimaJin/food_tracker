@@ -14,6 +14,7 @@ import {
 	mealsPageAction,
 	signUpInAction,
 } from "./actions.js";
+import ErrorPage from "./ErrorPage.jsx";
 
 const router = createBrowserRouter([
 	{
@@ -25,23 +26,27 @@ const router = createBrowserRouter([
 			{
 				index: true,
 				action: dateSelectAction,
+				errorElement: <ErrorPage />,
 				element: <DateSelectPage />,
 			},
 			{
 				path: "meals",
 				loader: mealsLoader,
 				action: mealsPageAction,
+				errorElement: <ErrorPage />,
 				element: <MealsPage />,
 			},
 			{
 				path: "foods",
 				loader: foodsLoader,
 				action: foodsPageAction,
+				errorElement: <ErrorPage />,
 				element: <FoodsPage />,
 			},
 			{
 				path: "stats",
 				loader: statsLoader,
+				errorElement: <ErrorPage />,
 				element: <StatsPage />,
 			},
 		],
