@@ -152,7 +152,6 @@ export default function StatsPage() {
 		return date.toISOString().split("T")[0];
 	}
 
-	//TODO: Disallow button click when invalid date range
 	return (
 		<div className="current-window scroll-window stats-window">
 			<header>

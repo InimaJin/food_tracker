@@ -179,6 +179,7 @@ app.get(`${apiRoot}/meals`, async (req, res) => {
 	const username = req.username;
 	const { date, endDate } = req.query;
 
+	//TODO: Check if date/ endDate is a valid time value
 	if (!date) {
 		return res.status(400).json({ error: "Missing parameters." });
 	}
