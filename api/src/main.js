@@ -29,7 +29,6 @@ function auth(req, res, next) {
 	try {
 		const decoded = jsonwebtoken.verify(token, JWT_SECRET);
 		req.username = decoded.username;
-		console.log(req.username);
 		next();
 	} catch (e) {
 		res.status(444).json({ error: "auth fail" });
