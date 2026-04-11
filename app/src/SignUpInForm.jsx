@@ -2,8 +2,6 @@ import { useState } from "react";
 import { Form, useNavigate } from "react-router-dom";
 import { apiRoot } from "./constants.json";
 
-export async function signUpInAction() {}
-
 function SignUpOrInText({ signUp, setSignUp, clearInputs }) {
 	const text = signUp ? "Already have an account?" : "Don't have an account?";
 	const buttonText = signUp ? "Sign in" : "Sign up";

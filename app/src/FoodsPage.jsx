@@ -1,35 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { redirect, useLoaderData, Form, useNavigate } from "react-router-dom";
+import { useLoaderData, Form, useNavigate } from "react-router-dom";
 import { apiRoot } from "./constants.json";
 import { DeleteButton } from "./components/DeleteButton";
 import { handleAuthFail } from "./util";
-
-export async function foodsPageLoader() {
-	const token = localStorage.getItem("token");
-	if (!token) {
-		return redirect("/");
-	}
-	const foods = await fetch(`${apiRoot}/foods`, {
-		method: "GET",
-		headers: {
-			Authorization: token,
-		},
-	}).then((res) => {
-		if (handleAuthFail(res)) {
-			return null;
-		}
-
-		return res.json();
-	});
-
-	if (!foods) {
-		return redirect("/");
-	}
-
-	return { token, foods };
-}
-
-export function foodsPageAction() {}
 
 /**
  * A dialog for updating kcal/ protein values of a selected food.

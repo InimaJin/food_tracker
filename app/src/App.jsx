@@ -1,10 +1,6 @@
 import { Link, Outlet, useLoaderData } from "react-router-dom";
 import SignUpInForm from "./SignUpInForm";
 
-export function appLoader() {
-	return localStorage.getItem("token");
-}
-
 /**
  * Root component. Renders a child component and the header at the bottom of tha page.
  */

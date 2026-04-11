@@ -1,48 +1,8 @@
 import { useState, useRef } from "react";
-import { redirect, useLoaderData, Form, useNavigate } from "react-router-dom";
-import { apiRoot } from "./constants.json";
+import { useLoaderData, Form, useNavigate } from "react-router-dom";
 import { DeleteButton } from "./components/DeleteButton";
 import { handleAuthFail } from "./util";
-
-/**
- * Load all meals for given user and date.
- */
-export async function mealsPageLoader({ request }) {
-	const searchParams = new URLSearchParams(request.url.split("?")[1]);
-	const date = searchParams.get("d");
-	if (!date) {
-		return redirect("/");
-	}
-
-	const token = localStorage.getItem("token");
-	if (!token) {
-		return redirect("/");
-	}
-
-	const meals = await fetch(`${apiRoot}/meals?date=${date}`, {
-		method: "GET",
-		headers: {
-			Authorization: token,
-		},
-	}).then((res) => {
-		if (handleAuthFail(res)) {
-			return null;
-		}
-		return res.json();
-	});
-
-	if (!meals) {
-		return redirect("/");
-	}
-
-	return {
-		token,
-		date,
-		meals,
-	};
-}
-
-export function mealsPageAction() {}
+import { apiRoot } from "./constants.json";
 
 /**
  * A small form for editing a meal within the meals overview.

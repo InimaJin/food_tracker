@@ -1,16 +1,8 @@
 import * as Plot from "@observablehq/plot";
 import { useEffect, useRef, useState } from "react";
-import { redirect, useLoaderData, useNavigate } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 import { apiRoot } from "./constants.json";
 import { handleAuthFail } from "./util";
-
-export function statsPageLoader() {
-	const token = localStorage.getItem("token");
-	if (!token) {
-		return redirect("/");
-	}
-	return token;
-}
 
 export default function StatsPage() {
 	const token = useLoaderData();
