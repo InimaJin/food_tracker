@@ -1,7 +1,8 @@
 import * as Plot from "@observablehq/plot";
 import { useEffect, useRef, useState } from "react";
-import { redirect, useLoaderData } from "react-router-dom";
+import { redirect, useLoaderData, useNavigate } from "react-router-dom";
 import { apiRoot } from "./constants.json";
+import { handleAuthFail } from "./util";
 
 export function statsPageLoader() {
 	const token = localStorage.getItem("token");
@@ -35,6 +36,8 @@ export default function StatsPage() {
 		(endDate.getTime() - startDate.getTime()) / 86_400_000,
 	);
 
+	const navigate = useNavigate();
+
 	function loadData() {
 		fetch(`${apiRoot}/meals?date=${startDate}&endDate=${endDate}`, {
 			method: "GET",
@@ -42,8 +45,17 @@ export default function StatsPage() {
 				Authorization: token,
 			},
 		})
-			.then((res) => res.json())
+			.then((res) => {
+				if (handleAuthFail(res)) {
+					navigate("/");
+				} else {
+					return res.json();
+				}
+			})
 			.then((json) => {
+				if (!json) {
+					return;
+				}
 				let nextData = json.reduce((map, meal) => {
 					const date = meal.date;
 					if (!map.has(date)) {

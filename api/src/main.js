@@ -1,4 +1,4 @@
-import express, { request } from "express";
+import express from "express";
 import cors from "cors";
 import postgres from "postgres";
 import bcrypt from "bcrypt";
@@ -29,9 +29,10 @@ function auth(req, res, next) {
 	try {
 		const decoded = jsonwebtoken.verify(token, JWT_SECRET);
 		req.username = decoded.username;
+		console.log(req.username);
 		next();
 	} catch (e) {
-		res.status(400).json({ error: "auth fail" });
+		res.status(444).json({ error: "auth fail" });
 	}
 }
 
@@ -134,7 +135,6 @@ app.post(`${apiRoot}/add-food`, async (req, res) => {
  */
 app.post(`${apiRoot}/edit-food`, async (req, res) => {
 	const username = req.username;
-	//TODO: Optional parameter for deleting a food.
 	const { foodId, kcal, protein } = req.body;
 	if (!(foodId && kcal && protein)) {
 		return res.status(400).json({ error: "Missing parameters." });

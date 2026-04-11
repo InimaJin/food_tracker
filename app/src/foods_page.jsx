@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { redirect, useLoaderData, Form } from "react-router-dom";
+import { redirect, useLoaderData, Form, useNavigate } from "react-router-dom";
 import { apiRoot } from "./constants.json";
 import { DeleteButton } from "./components/DeleteButton";
+import { handleAuthFail } from "./util";
 
 export async function foodsPageLoader() {
 	const token = localStorage.getItem("token");
@@ -13,7 +14,17 @@ export async function foodsPageLoader() {
 		headers: {
 			Authorization: token,
 		},
-	}).then((res) => res.json());
+	}).then((res) => {
+		if (handleAuthFail(res)) {
+			return null;
+		}
+
+		return res.json();
+	});
+
+	if (!foods) {
+		return redirect("/");
+	}
 
 	return { token, foods };
 }
@@ -99,6 +110,8 @@ export default function FoodsPage() {
 		}
 	}, [editFood]);
 
+	const navigate = useNavigate();
+
 	function onFoodEdit(newKcal, newProtein) {
 		fetch(`${apiRoot}/edit-food`, {
 			method: "POST",
@@ -112,8 +125,17 @@ export default function FoodsPage() {
 				protein: newProtein,
 			}),
 		})
-			.then((res) => res.json())
+			.then((res) => {
+				if (handleAuthFail(res)) {
+					navigate("/");
+				} else {
+					return res.json();
+				}
+			})
 			.then((updatedFood) => {
+				if (!updatedFood) {
+					return;
+				}
 				let nextFoods = foods.filter(
 					(food) => food.food_id !== editFood.food_id,
 				);
@@ -164,10 +186,20 @@ export default function FoodsPage() {
 							foodId: editFood.food_id,
 						}),
 					})
-						.then((res) => res.json())
-						.then(({ food_id: deletedId }) => {
+						.then((res) => {
+							if (handleAuthFail(res)) {
+								navigate("/");
+							} else {
+								return res.json();
+							}
+						})
+						.then((deletedFood) => {
+							if (!deletedFood) {
+								return;
+							}
+
 							const nextFoods = foodsState.filter(
-								(food) => food.food_id !== deletedId,
+								(food) => food.food_id !== deletedFood.food_id,
 							);
 							setFoodsState(nextFoods);
 							setEditFood({});

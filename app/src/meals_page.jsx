@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
-import { redirect, useLoaderData, Form } from "react-router-dom";
+import { redirect, useLoaderData, Form, useNavigate } from "react-router-dom";
 import { apiRoot } from "./constants.json";
 import { DeleteButton } from "./components/DeleteButton";
+import { handleAuthFail } from "./util";
 
 /**
  * Load all meals for given user and date.
@@ -23,7 +24,16 @@ export async function mealsPageLoader({ request }) {
 		headers: {
 			Authorization: token,
 		},
-	}).then((res) => res.json());
+	}).then((res) => {
+		if (handleAuthFail(res)) {
+			return null;
+		}
+		return res.json();
+	});
+
+	if (!meals) {
+		return redirect("/");
+	}
 
 	return {
 		token,
@@ -97,6 +107,8 @@ function Meal({
 		totalProtein,
 	} = mealObj;
 
+	const navigate = useNavigate();
+
 	return (
 		<>
 			<div className="meal-top">
@@ -130,8 +142,17 @@ function Meal({
 								overwrite: true,
 							}),
 						})
-							.then((res) => res.json())
+							.then((res) => {
+								if (handleAuthFail(res)) {
+									navigate("/");
+								} else {
+									return res.json();
+								}
+							})
 							.then((newMeal) => {
+								if (!newMeal) {
+									return;
+								}
 								const nextMeals = mealsState.filter(
 									(meal) => meal.food_id !== newMeal.food_id,
 								);
@@ -150,7 +171,12 @@ function Meal({
 								date,
 								foodId,
 							}),
-						}).then(() => {
+						}).then((res) => {
+							if (handleAuthFail(res)) {
+								navigate("/");
+								return;
+							}
+
 							const nextMeals = mealsState.filter(
 								(meal) => meal.food_id !== foodId,
 							);
@@ -343,6 +369,8 @@ export default function MealsPage() {
 
 	const [editingMealId, setEditingMealId] = useState(null);
 
+	const navigate = useNavigate();
+
 	const mealsList = meals.map((meal) => {
 		return (
 			<li key={meal.food_id}>
@@ -370,8 +398,17 @@ export default function MealsPage() {
 				Authorization: token,
 			},
 		})
-			.then((res) => res.json())
+			.then((res) => {
+				if (handleAuthFail(res)) {
+					navigate("/");
+				} else {
+					return res.json();
+				}
+			})
 			.then((foodsArr) => {
+				if (!foodsArr) {
+					return;
+				}
 				setAllFoods(foodsArr);
 				setMatchingFoods(foodsArr);
 			});
@@ -401,7 +438,7 @@ export default function MealsPage() {
 				onSubmit={async ({ foodName, kcal, protein, amount }) => {
 					const matchingFood = allFoods.find((food) => food.name === foodName);
 					if (!matchingFood) {
-						await fetch(`${apiRoot}/add-food`, {
+						const success = await fetch(`${apiRoot}/add-food`, {
 							method: "POST",
 							headers: {
 								"Content-Type": "application/json",
@@ -412,7 +449,14 @@ export default function MealsPage() {
 								kcal,
 								protein,
 							}),
+						}).then((res) => {
+							return !handleAuthFail(res);
 						});
+
+						if (!success) {
+							navigate("/");
+							return;
+						}
 					}
 
 					fetch(`${apiRoot}/add-meal`, {
@@ -427,8 +471,17 @@ export default function MealsPage() {
 							amount,
 						}),
 					})
-						.then((res) => res.json())
+						.then((res) => {
+							if (handleAuthFail(res)) {
+								navigate("/");
+							} else {
+								return res.json();
+							}
+						})
 						.then((newMeal) => {
+							if (!newMeal) {
+								return;
+							}
 							const nextMeals = mealsState.filter(
 								(meal) => meal.food_id !== newMeal.food_id,
 							);

@@ -2,11 +2,8 @@ import { Link, Outlet, useLoaderData } from "react-router-dom";
 import SignUpInForm from "./SignUpInForm";
 
 export function appLoader() {
-	const token = localStorage.getItem("token");
-	return token;
+	return localStorage.getItem("token");
 }
-
-//TODO: Load user token from context
 
 /**
  * Root component. Renders a child component and the header at the bottom of tha page.
